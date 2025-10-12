@@ -14,8 +14,8 @@ export class Uuid4 {
         this._value = randomUUID();
     }
 
-    get value(): string {
-        return this._value;
+    public static create(): Uuid4 {
+        return new Uuid4();
     }
 
     public equals(other: Uuid4): boolean {
@@ -30,7 +30,7 @@ export class Uuid4 {
         return this._value;
     }
 
-    public static generate(): string {
-        return randomUUID();
+    get value(): string {
+        return this._value;
     }
 }

@@ -1,12 +1,11 @@
-import { Email } from 'src/auth/domain/value-objects/email.vo';
-import { Password } from 'src/auth/domain/value-objects/password.vo';
-import { Username } from 'src/auth/domain/value-objects/username.vo';
-import { CreatedAt } from 'src/common/domain/identity/value-objects/created-at.vo';
-import { UpdatedAt } from 'src/common/domain/identity/value-objects/updated-at.vo';
-import { Session } from '../../../auth/domain/entities/session.entity';
-import { SessionId } from 'src/auth/domain/value-objects/session-id.vo';
-import { MediaURL } from 'src/common/domain/identity/value-objects/media-url.vo';
-import { SessionCollection } from 'src/auth/domain/collections/session.collection';
+import { SessionCollection } from 'src/modules/auth/domain/collections/session.collection';
+import { Email } from 'src/modules/auth/domain/value-objects/email.vo';
+import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
+import { Username } from 'src/modules/auth/domain/value-objects/username.vo';
+import { Session } from 'src/modules/auth/session.entity';
+import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
+import { MediaURL } from 'src/shared/domain/value-objects/media-url.vo';
+import { UpdatedAt } from 'src/shared/domain/value-objects/updated-at.vo';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 
 /* User properties used to create a User entity*/
@@ -91,7 +90,7 @@ export class User {
         this._updatedAt = props.updatedAt ?? UpdatedAt.now();
     }
 
-    static create(props: UserProps) {
+    static create(props: CreateUserProps) {
         return new User(props);
     }
 
@@ -103,12 +102,12 @@ export class User {
         return this;
     }
 
-    removeSession(sessionId: SessionId): this {
+    removeSession(sessionId: Uuid4): this {
         this._sessions.remove(sessionId);
         return this;
     }
 
-    getSession(sessionId: SessionId): Session | undefined {
+    getSession(sessionId: Uuid4): Session | undefined {
         return this._sessions.getById(sessionId);
     }
 
