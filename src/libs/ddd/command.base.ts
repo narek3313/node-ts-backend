@@ -2,12 +2,20 @@ import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 import { ArgumentNotProvidedException } from '../exceptions/exceptions';
 import { Guard } from '../utils/guard';
 
-export type CommandProps<T> = Omit<T, 'id' | 'metadata'> & Partial<Command>;
+/**
+ * Combines the properties of `T` (excluding `id` and `metadata`)
+ * with the optional fields from the `Command` class.
+ *
+ * Effectively: T without `id` and `metadata`, plus `Partial<Command>`.
+ */ export type CommandProps<T> = Omit<T, 'id' | 'metadata'> & Partial<Command>;
 
 type CommandMetadata = {
     /**
      * Causation id to reconstruct execution order if needed
      */
+    /**
+     * My app design doesnt have Domain Events yet so this is not used
+     * */
     readonly causationId?: string;
 
     /**
@@ -27,7 +35,7 @@ export class Command {
      * Command id, in case if we want to save it
      * for auditing purposes and create a correlation/causation chain
      */
-    readonly id: string;
+    readonly id: Uuid4;
 
     readonly metadata: CommandMetadata;
 
@@ -35,6 +43,9 @@ export class Command {
         if (Guard.isEmpty(props)) {
             throw new ArgumentNotProvidedException('Command props should not be empty');
         }
+
+        this.id = Uuid4.create();
+
         this.metadata = {
             causationId: props?.metadata?.causationId,
             timestamp: props?.metadata?.timestamp || Date.now(),

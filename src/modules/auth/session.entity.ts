@@ -9,7 +9,7 @@ import { RevokedAt } from 'src/shared/domain/value-objects/revoked-at.vo';
 import { ExpiresAt } from 'src/shared/domain/value-objects/expires-at.vo';
 
 export type CreateSessionProps = {
-    id: Uuid4;
+    id?: Uuid4;
     userId: Uuid4;
     refreshToken: RefreshToken;
     createdAt?: CreatedAt;
@@ -68,7 +68,7 @@ export class Session {
     private _userId: Uuid4;
 
     private constructor(props: CreateSessionProps) {
-        this._id = props.id;
+        this._id = props.id ?? Uuid4.create();
         this._createdAt = props.createdAt ?? CreatedAt.now();
         this._updatedAt = props.updatedAt ?? UpdatedAt.now();
         this._refreshToken = props.refreshToken;

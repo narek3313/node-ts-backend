@@ -44,6 +44,11 @@ export class SessionCollection extends EntityCollection<Session> {
         super.add(session);
     }
 
+    /* Instantiate an empty SessionCollection */
+    static empty(): SessionCollection {
+        return new SessionCollection();
+    }
+
     public static create(sessions: Session[]): SessionCollection {
         if (sessions.length > 5) {
             throw new ArgumentOutOfRangeException(

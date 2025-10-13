@@ -1,6 +1,5 @@
 import { SessionCollection } from 'src/modules/auth/domain/collections/session.collection';
 import { Email } from 'src/modules/auth/domain/value-objects/email.vo';
-import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
 import { Username } from 'src/modules/auth/domain/value-objects/username.vo';
 import { Session } from 'src/modules/auth/session.entity';
 import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
@@ -10,14 +9,27 @@ import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 
 /* User properties used to create a User entity*/
 export type CreateUserProps = {
-    id: Uuid4;
+    id?: Uuid4;
     email: Email;
     username: Username;
-    password: Password;
-    avatar?: MediaURL;
+    avatar?: MediaURL | null;
     createdAt?: CreatedAt;
     updatedAt?: UpdatedAt;
     sessions?: SessionCollection;
+};
+
+/**
+ * Defining the type get returned by toObject method.
+ * This object is useful when you want to pass user props
+ * to an interface that is unaware of domain entities or vo's
+ */
+export type UserPropsPrimitives = {
+    id: string;
+    email: string;
+    username: string;
+    avatar?: string | null;
+    createdAt: Date;
+    updatedAt: Date;
 };
 
 /*
@@ -74,20 +86,19 @@ export class User {
     private _id: Uuid4;
     private _email: Email;
     private _username: Username;
-    private _password: Password;
     private _avatar?: MediaURL | null;
     private _createdAt: CreatedAt;
     private _updatedAt: UpdatedAt;
     private _sessions: SessionCollection;
 
     private constructor(props: CreateUserProps) {
-        this._id = props.id;
+        this._id = props.id || Uuid4.create();
         this._email = props.email;
         this._username = props.username;
-        this._password = props.password;
         this._avatar = props.avatar ?? null;
         this._createdAt = props.createdAt ?? CreatedAt.now();
         this._updatedAt = props.updatedAt ?? UpdatedAt.now();
+        this._sessions = SessionCollection.empty();
     }
 
     static create(props: CreateUserProps) {
@@ -131,10 +142,15 @@ export class User {
         return this;
     }
 
-    updatePassword(newPassword: Password) {
-        this._password = newPassword;
-        this.touch();
-        return this;
+    toObject(): UserPropsPrimitives {
+        return {
+            id: this._id.value,
+            username: this._username.value,
+            email: this._email.value,
+            avatar: this._avatar?.value ?? null,
+            createdAt: this._createdAt.value.toDate(),
+            updatedAt: this._updatedAt.value.toDate(),
+        };
     }
 
     /* private helpers */
@@ -153,9 +169,6 @@ export class User {
     }
     get username(): Username {
         return this._username;
-    }
-    get password(): Password {
-        return this._password;
     }
     get avatar(): MediaURL | null {
         return this._avatar ?? null;

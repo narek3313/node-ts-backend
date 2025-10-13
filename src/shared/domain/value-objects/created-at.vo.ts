@@ -9,8 +9,8 @@ export class CreatedAt {
     }
 
     // Create CreatedAt value object with existing DateTime object
-    public static from(val: DateTime): CreatedAt {
-        if (!(val instanceof DateTime) || isNaN(val.toMillis())) {
+    public static from(val: DateTime | Date): CreatedAt {
+        if (!(val instanceof DateTime) || !(val instanceof Date) || isNaN(val.toMillis())) {
             throw new ArgumentInvalidException('Invalid createdAt timestamp');
         }
 
@@ -21,7 +21,7 @@ export class CreatedAt {
         return new CreatedAt(val);
     }
 
-    get time(): DateTime {
+    get value(): DateTime {
         return this.val;
     }
 

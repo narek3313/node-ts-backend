@@ -14,10 +14,6 @@ export class MediaURL {
         return MEDIA_URL_REGEX.test(value);
     }
 
-    public getValue(): string {
-        return this._value;
-    }
-
     public equals(other: MediaURL): boolean {
         return this._value === other._value;
     }
@@ -40,6 +36,10 @@ export class MediaURL {
     }
 
     public toString(): string {
+        return this._value;
+    }
+
+    public get value(): string {
         return this._value;
     }
 }

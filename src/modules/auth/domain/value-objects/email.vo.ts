@@ -1,5 +1,5 @@
-import { EMAIL_REGEX } from "src/libs/regex";
-import { validateByRegex } from "src/libs/utils/validate-string";
+import { EMAIL_REGEX } from 'src/libs/regex';
+import { validateByRegex } from 'src/libs/utils/validate-string';
 
 /*
  * Domain representation of Email

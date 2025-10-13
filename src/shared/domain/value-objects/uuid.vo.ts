@@ -1,4 +1,6 @@
 import { randomUUID } from 'crypto';
+import { UUID_REGEX } from 'src/libs/regex';
+import { validateByRegex } from 'src/libs/utils/validate-string';
 
 /*
  * Class for UUIDV4 type across domain layer
@@ -10,12 +12,20 @@ import { randomUUID } from 'crypto';
 export class Uuid4 {
     private readonly _value: string;
 
-    private constructor() {
+    private constructor(_id?: string) {
+        if (_id) {
+            const id = validateByRegex(_id, UUID_REGEX, 'uuidv4');
+            this._value = id;
+        }
         this._value = randomUUID();
     }
 
     public static create(): Uuid4 {
         return new Uuid4();
+    }
+
+    public static from(id: string): Uuid4 {
+        return new Uuid4(id);
     }
 
     public equals(other: Uuid4): boolean {
