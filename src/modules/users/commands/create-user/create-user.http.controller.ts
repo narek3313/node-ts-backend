@@ -11,10 +11,23 @@ import { Email } from 'src/modules/auth/domain/value-objects/email.vo';
 import { Username } from 'src/modules/auth/domain/value-objects/username.vo';
 import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
 
+/**
+ * @controller CreateUserHttpController
+ * @description
+ * Handles user creation requests. Uses the CQRS CommandBus
+ * to execute the create user command and returns the new user's ID.
+ */
 @Controller(routesV1.version)
 export class CreateUserHttpController {
     constructor(private readonly commandBus: CommandBus) {}
 
+    /**
+     * @route POST /users
+     * @description Creates a new user with email, username, and password.
+     * Converts incoming strings into domain value objects for validation.
+     * @returns {IdResponse} The ID of the newly created user.
+     * @throws {Http409} When a user with the same email or username already exists.
+     */
     @Post(routesV1.user.root)
     async create(@Body() body: CreateUserRequestDto): Promise<IdResponse> {
         const command = new CreateUserCommand({

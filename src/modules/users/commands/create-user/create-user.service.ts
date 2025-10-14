@@ -10,12 +10,29 @@ import { UserAuth } from '../../domain/user-auth.entity';
 import { hashPassword } from 'src/libs/utils/hash';
 import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
 
+/**
+ * @commandhandler CreateUserService
+ * @description
+ * Handles the creation of a new user. Converts domain value objects
+ * into entities and persists both the User and UserAuth records.
+ * Returns the newly created user's ID or an error if the user already exists.
+ */
 @CommandHandler(CreateUserCommand)
 export class CreateUserService
     implements ICommandHandler<CreateUserCommand, Result<Uuid4, UserAlreadyExistsError>>
 {
     constructor(private readonly userRepo: UserRepository) {}
 
+    /**
+     * @method execute
+     * @description Executes the CreateUserCommand:
+     * 1. Builds User and UserAuth entities.
+     * 2. Hashes the password.
+     * 3. Persists both entities through the repository.
+     * @param {CreateUserCommand} command The command containing email, username, and password VOs.
+     * @returns {Promise<Result<Uuid4, UserAlreadyExistsError>>} The new user's ID if successful,
+     * or an error if the user already exists.
+     */
     async execute(command: CreateUserCommand): Promise<Result<Uuid4, UserAlreadyExistsError>> {
         const user = User.create({
             email: command.email,

@@ -13,10 +13,21 @@ import { match } from 'oxide.ts';
 import { DeleteUserCommand } from './delete-user.command';
 import { Result } from 'oxide.ts';
 
+/**
+ * @controller DeleteUserHttpController
+ * @description
+ * Handles user deletion requests. Uses the CQRS CommandBus
+ * to execute the delete user command.
+ */
 @Controller(routesV1.version)
 export class DeleteUserHttpController {
     constructor(private readonly commandBus: CommandBus) {}
 
+    /**
+     * @route DELETE /users/:id
+     * @description Deletes a user by ID.
+     * @throws {Http404} When the user is not found.
+     */
     @Delete(routesV1.user.delete)
     async deleteUser(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string): Promise<void> {
         const command = new DeleteUserCommand({ userId: Uuid4.from(id) });

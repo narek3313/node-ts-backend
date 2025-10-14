@@ -12,7 +12,6 @@ import { UserMapper } from '../user.mapper';
 import { UserCollection } from '../domain/collections/users.collection';
 import { UserAuth } from '../domain/user-auth.entity';
 import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
-import { DateTime } from 'src/libs/utils/date-time';
 
 @Injectable()
 export class UserRepository implements UserRepositoryContract {
@@ -109,6 +108,21 @@ export class UserRepository implements UserRepositoryContract {
         }
 
         return new IdResponse(Uuid4.from(user.id));
+    }
+
+    async getPassword(_id: Uuid4): Promise<Password | null> {
+        const id = _id.value;
+
+        const user = await this.prisma.userAuth.findFirst({
+            where: { userId: id },
+            select: { password: true },
+        });
+
+        if (!user) {
+            return null;
+        }
+
+        return Password.create(user.password);
     }
 
     async create(user: User, _auth: UserAuth): Promise<IdResponse> {

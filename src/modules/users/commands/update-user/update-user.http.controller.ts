@@ -29,10 +29,22 @@ import { UpdatePasswordDto } from './dtos/update-password.request.dto';
 import { UpdateAvatarDto } from './dtos/update-avatar.request.dto';
 import { MediaURL } from 'src/shared/domain/value-objects/media-url.vo';
 
+/**
+ * @controller UpdateUserHttpController
+ * @description
+ * Handles user profile update operations such as changing email, username,
+ * password, and avatar. Uses the CQRS CommandBus to execute user update commands.
+ */
 @Controller(routesV1.version)
 export class UpdateUserHttpController {
     constructor(private readonly commandBus: CommandBus) {}
 
+    /**
+     * @route PATCH /users/:id/email
+     * @description Updates the user's email address.
+     * @throws {Http404} When the user is not found.
+     * @throws {Http409} When the email is already taken.
+     */
     @Patch(`${routesV1.user.root}/:id/email`)
     async updateEmail(
         @Body() body: UpdateEmailDto,
@@ -59,6 +71,12 @@ export class UpdateUserHttpController {
         });
     }
 
+    /**
+     * @route PATCH /users/:id/username
+     * @description Updates the user's username.
+     * @throws {Http404} When the user is not found.
+     * @throws {Http409} When the username is already taken.
+     */
     @Patch(`${routesV1.user.root}/:id/username`)
     async updateUsername(
         @Body() body: UpdateUsernameDto,
@@ -81,6 +99,12 @@ export class UpdateUserHttpController {
         });
     }
 
+    /**
+     * @route PATCH /users/:id/password
+     * @description Updates the user's password after validating the old one.
+     * @throws {Http404} When the user is not found.
+     * @throws {Http400} When the old password is invalid.
+     */
     @Patch(`${routesV1.user.root}/:id/password`)
     async updatePassword(
         @Body() body: UpdatePasswordDto,
@@ -104,6 +128,11 @@ export class UpdateUserHttpController {
         });
     }
 
+    /**
+     * @route PATCH /users/:id/avatar
+     * @description Updates the user's avatar URL.
+     * @throws {Http404} When the user is not found.
+     */
     @Patch(`${routesV1.user.root}/:id/avatar`)
     async updateAvatar(
         @Body() body: UpdateAvatarDto,
