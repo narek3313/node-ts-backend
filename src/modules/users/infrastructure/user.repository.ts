@@ -9,6 +9,10 @@ import { Username } from 'src/modules/auth/domain/value-objects/username.vo';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 import { Prisma } from '@prisma/client';
 import { UserMapper } from '../user.mapper';
+import { UserCollection } from '../domain/collections/users.collection';
+import { UserAuth } from '../domain/user-auth.entity';
+import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
+import { DateTime } from 'src/libs/utils/date-time';
 
 @Injectable()
 export class UserRepository implements UserRepositoryContract {
@@ -28,7 +32,26 @@ export class UserRepository implements UserRepositoryContract {
 
         return UserMapper.createUserEntityFromDbRecord(user);
     }
-    findAll(offset: number, limit: number): Promise<UserCollection> {}
+
+    async findAll(offset: number, limit: number): Promise<UserCollection> {
+        const [users, total] = await this.prisma.$transaction([
+            this.prisma.user.findMany({
+                skip: offset,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
+                include: { sessions: true },
+            }),
+            this.prisma.user.count(),
+        ]);
+
+        const userCollection = UserMapper.createUserCollectionFromDbRecord(users);
+
+        const page = Math.floor(offset / limit) + 1;
+        userCollection.setPagination(page, limit, total);
+
+        return userCollection;
+    }
+
     async findByEmail(_email: Email): Promise<User | null> {
         const email = _email.value;
 
@@ -88,10 +111,12 @@ export class UserRepository implements UserRepositoryContract {
         return new IdResponse(Uuid4.from(user.id));
     }
 
-    async create(user: User): Promise<IdResponse> {
+    async create(user: User, _auth: UserAuth): Promise<IdResponse> {
         const data = user.toObject();
+        const auth = _auth.toObject();
 
         await this.prisma.user.create({ data });
+        await this.prisma.userAuth.create({ data: auth });
 
         return new IdResponse(user.id);
     }
@@ -102,6 +127,18 @@ export class UserRepository implements UserRepositoryContract {
             where: { id },
             data: {
                 avatar: avatar.value,
+            },
+        });
+    }
+
+    async updatePassword(_userId: Uuid4, _password: Password): Promise<void> {
+        const userId = _userId.value;
+        const password = _password.value;
+        await this.prisma.userAuth.update({
+            where: { userId },
+            data: {
+                password,
+                lastPasswordChange: new Date(),
             },
         });
     }

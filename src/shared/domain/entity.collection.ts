@@ -7,6 +7,22 @@ import { Uuid4 } from './value-objects/uuid.vo';
 export abstract class EntityCollection<T extends { id: Uuid4 }> {
     protected readonly items: Map<string, T> = new Map();
 
+    protected _page: number = 1;
+    protected _limit: number = 10;
+    protected _totalItems: number = 0;
+
+    /**
+     * Sets pagination info for this collection.
+     * @param page Current page number (1-based)
+     * @param limit Number of items per page
+     * @param totalItems Total number of items across all pages
+     */
+    setPagination(page: number, limit: number, totalItems: number): void {
+        this._page = page;
+        this._limit = limit;
+        this._totalItems = totalItems;
+    }
+
     /**
      * Initializes the collection with optional entities.
      */

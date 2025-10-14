@@ -28,7 +28,7 @@ model User {
 model UserAuth {
   userId              String    @id
   password            String
-  lastPasswordChange  DateTime?
+  lastPasswordChange  DateTime? 
   failedLoginAttempts Int       @default(0)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -5,6 +5,7 @@ import { User } from './user.entity';
 import { IdResponse } from 'src/libs/api/id.response.dto';
 import { Username } from 'src/modules/auth/domain/value-objects/username.vo';
 import { MediaURL } from 'src/shared/domain/value-objects/media-url.vo';
+import { UserAuth } from './user-auth.entity';
 
 /**
  * Domain-level contract for User repository implementations.
@@ -20,7 +21,7 @@ export interface UserRepositoryContract {
     existsById(id: Uuid4): Promise<IdResponse | null>;
     existsByEmail(email: Email): Promise<IdResponse | null>;
     existsByUsername(username: Username): Promise<IdResponse | null>;
-    create(user: User): Promise<IdResponse>;
+    create(user: User, auth: UserAuth): Promise<IdResponse>;
     updateUsername(userId: Uuid4, username: Username): Promise<void>;
     updateEmail(userId: Uuid4, email: Email): Promise<void>;
     updateAvatar(userId: Uuid4, avatar: MediaURL): Promise<void>;

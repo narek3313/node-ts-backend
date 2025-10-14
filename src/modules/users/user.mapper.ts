@@ -5,27 +5,8 @@ import { MediaURL } from 'src/shared/domain/value-objects/media-url.vo';
 import { UpdatedAt } from 'src/shared/domain/value-objects/updated-at.vo';
 import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
 import { Email } from '../auth/domain/value-objects/email.vo';
-
-export type userDbRecord = {
-    id: string;
-    username: string;
-    email: string;
-    createdAt: Date;
-    updatedAt: Date;
-    avatar: string | null;
-    sessions: sessionDbRecord[];
-};
-
-export type sessionDbRecord = {
-    id: string;
-    refreshToken: string;
-    createdAt: Date;
-    updatedAt: Date;
-    userId: string;
-    userAgent: string;
-    ipAddress: string;
-    revokedAt: Date | null;
-};
+import { userDbRecord, userDbRecordArray } from 'src/db/db.records';
+import { UserCollection } from './domain/collections/users.collection';
 
 export class UserMapper {
     static createUserEntityFromDbRecord(dr: userDbRecord): User {
@@ -37,5 +18,24 @@ export class UserMapper {
             updatedAt: UpdatedAt.from(dr.updatedAt),
             createdAt: CreatedAt.from(dr.createdAt),
         });
+    }
+
+    static createUserCollectionFromDbRecord(dr: userDbRecordArray): UserCollection {
+        const col = UserCollection.create();
+
+        dr.forEach((r) => {
+            col.add(
+                User.create({
+                    id: Uuid4.from(r.id),
+                    email: Email.create(r.email),
+                    username: Username.create(r.username),
+                    avatar: r.avatar ? MediaURL.create(r.avatar) : null,
+                    updatedAt: UpdatedAt.from(r.updatedAt),
+                    createdAt: CreatedAt.from(r.createdAt),
+                }),
+            );
+        });
+
+        return col;
     }
 }

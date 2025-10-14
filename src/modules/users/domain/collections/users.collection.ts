@@ -9,14 +9,14 @@ export class UserCollection extends EntityCollection<User> {
     private _byEmail: Map<string, User>;
     private _byUsername: Map<string, User>;
 
-    private constructor(users: User[]) {
+    private constructor(users: User[] = []) {
         super(users);
 
         this._byEmail = new Map(users.map((u) => [u.email.value, u]));
         this._byUsername = new Map(users.map((u) => [u.username.value, u]));
     }
 
-    public static create(users: User[]): UserCollection {
+    public static create(users?: User[]): UserCollection {
         return new UserCollection(users);
     }
 

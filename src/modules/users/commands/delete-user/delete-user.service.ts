@@ -1,22 +1,20 @@
-import { CommandHandler } from '@nestjs/cqrs';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { NotFoundException } from 'src/libs/exceptions/exceptions';
-import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 import { Result, Ok, Err } from 'oxide.ts';
-
-export class DeleteUserCommand {
-    readonly userId: Uuid4;
-
-    constructor(props: DeleteUserCommand) {
-        this.userId = props.userId;
-    }
-}
+import { UserRepository } from '../../infrastructure/user.repository';
+import { DeleteUserCommand } from './delete-user.command';
 
 @CommandHandler(DeleteUserCommand)
-export class DeleteUserService {
-    constructor() {}
+export class DeleteUserService
+    implements ICommandHandler<DeleteUserCommand, Result<boolean, NotFoundException>>
+{
+    constructor(private readonly userRepo: UserRepository) {}
 
     async execute(command: DeleteUserCommand): Promise<Result<boolean, NotFoundException>> {
-        // repo logic
-        // return Ok or Err
+        const deleted = await this.userRepo.delete(command.userId);
+
+        if (!deleted) return Err(new NotFoundException());
+
+        return Ok(true);
     }
 }
