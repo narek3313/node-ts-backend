@@ -7,7 +7,7 @@ export class PostCollection extends EntityCollection<Post> {
     private _byAuthorId: Map<string, Post[]> = new Map();
     private _byStatus: Map<PostStatus, Post[]> = new Map();
 
-    private constructor(posts: Post[]) {
+    private constructor(posts: Post[] = []) {
         super(posts);
 
         for (const post of posts) {
@@ -21,7 +21,7 @@ export class PostCollection extends EntityCollection<Post> {
         }
     }
 
-    public static create(posts: Post[]): PostCollection {
+    public static create(posts: Post[] = []): PostCollection {
         return new PostCollection(posts);
     }
 

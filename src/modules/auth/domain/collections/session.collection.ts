@@ -60,7 +60,7 @@ export class SessionCollection extends EntityCollection<Session> {
 
     revokeExpired(): number {
         let count = 0;
-        for (const session of this.getAll()) {
+        for (const session of this.toArray()) {
             if (!session.revoked && session.expired) {
                 session.revoke();
                 count++;
@@ -71,7 +71,7 @@ export class SessionCollection extends EntityCollection<Session> {
 
     revokeInactive(): number {
         let count = 0;
-        for (const session of this.getAll()) {
+        for (const session of this.toArray()) {
             if (!session.revoked && !session.active) {
                 session.revoke();
                 count++;
@@ -81,8 +81,8 @@ export class SessionCollection extends EntityCollection<Session> {
     }
 
     sortByRecent(): Session[] {
-        return this.getAll().sort(
-            (a, b) => b.createdAt.time.toMillis() - a.createdAt.time.toMillis(),
+        return this.toArray().sort(
+            (a, b) => b.createdAt.value.toMillis() - a.createdAt.value.toMillis(),
         );
     }
 
@@ -95,7 +95,7 @@ export class SessionCollection extends EntityCollection<Session> {
 
     /* Returns only the active sessions for a user */
     get activeSessions(): Session[] {
-        return this.getAll().filter((s) => s.revoked === false);
+        return this.toArray().filter((s) => s.revoked === false);
     }
 
     /* Returns number of active sessions of a user */
@@ -104,10 +104,10 @@ export class SessionCollection extends EntityCollection<Session> {
     }
 
     getByIP(ip: IpAddress): Session[] {
-        return this.getAll().filter((s) => s.ipAddress === ip);
+        return this.toArray().filter((s) => s.ipAddress === ip);
     }
 
     getByUserAgent(ua: UserAgent): Session[] {
-        return this.getAll().filter((s) => s.userAgent === ua);
+        return this.toArray().filter((s) => s.userAgent === ua);
     }
 }

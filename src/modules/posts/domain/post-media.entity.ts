@@ -2,20 +2,30 @@ import { MediaType } from 'src/libs/enums/post-media-type';
 import { FileSize } from 'src/shared/domain/value-objects/file-size.vo';
 import { MediaDuration } from 'src/shared/domain/value-objects/media-duration.vo';
 import { MediaURL } from 'src/shared/domain/value-objects/media-url.vo';
+import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 
 export type CreatePostMediaProps<T extends MediaType> = {
+    id: Uuid4;
     url: MediaURL;
     type: T;
     size: FileSize;
     duration: MediaDuration | null;
 };
 
+export type PostMediaPropsPrimitives = {
+    id: string;
+    url: string;
+    type: MediaType;
+    size: number;
+    duration?: number | null;
+};
+
 /**
  * Domain representation of a single media element (image, video, or audio)
  * attached to a Post aggregate.
  *
- * This value object encapsulates all metadata required to represent a piece
- * of media content in a consistent, validated, and immutable form.
+ * This entity encapsulates all metadata required to represent a piece
+ * of media content in a consistent, validated form.
  *
  * ## Responsibilities
  * - Enforces the valid combination of properties for each media type.
@@ -29,22 +39,25 @@ export type CreatePostMediaProps<T extends MediaType> = {
  * - **Audio:** has `url`, `FileSize.audio`, `duration`.
  *
  * ## Notes
- * - Instances are immutable and can only be created through static factory methods.
+ * - Instances are mutable and can only be created through static factory methods.
  * - Equality can be checked either shallowly (`equals`) or deeply (`equalsDeep`).
  * - Designed for use within the Post aggregate and related domain collections.
  */
 export class PostMedia {
+    private readonly _id: Uuid4;
     private readonly _url: MediaURL;
     private readonly _type: MediaType;
     private readonly _size: FileSize;
     private readonly _duration: MediaDuration | null;
 
     private constructor(
+        id: Uuid4,
         url: MediaURL,
         type: MediaType,
         size: FileSize,
         duration: MediaDuration | null,
     ) {
+        this._id = id;
         this._url = url;
         this._type = type;
         this._size = size;
@@ -53,46 +66,31 @@ export class PostMedia {
 
     public static createAudio(props: CreatePostMediaProps<MediaType.AUDIO>): PostMedia {
         const size = FileSize.audio(props.size.value);
-        return new PostMedia(props.url, MediaType.AUDIO, size, props.duration);
+        return new PostMedia(props.id, props.url, MediaType.AUDIO, size, props.duration);
     }
 
     public static createVideo(props: CreatePostMediaProps<MediaType.VIDEO>): PostMedia {
         const size = FileSize.video(props.size.value);
-        return new PostMedia(props.url, MediaType.VIDEO, size, props.duration);
+        return new PostMedia(props.id, props.url, MediaType.VIDEO, size, props.duration);
     }
 
     public static createImage(props: CreatePostMediaProps<MediaType.IMAGE>): PostMedia {
         const size = FileSize.image(props.size.value);
-        return new PostMedia(props.url, MediaType.IMAGE, size, null);
+        return new PostMedia(props.id, props.url, MediaType.IMAGE, size, null);
     }
 
-    /* Check uniqueness only based on URL */
-    public equals(other: PostMedia): boolean {
-        return this.url === other.url;
-    }
-
-    /* Check uniqueness based on every metadata */
-    public equalsDeep(other: PostMedia): boolean {
-        return (
-            this._url.equals(other.url) &&
-            this._type === other.type &&
-            this._size.equals(other.size) &&
-            ((this._duration && other.duration && this._duration.equals(other.duration)) ||
-                this._duration === other.duration)
-        );
-    }
-
-    public toJSON() {
+    public toJSON(): PostMediaPropsPrimitives {
         return {
-            url: this._url.toString(),
+            id: this._id.value,
+            url: this._url.value,
             type: this._type,
-            size: this._size.toJSON(),
-            duration: this._duration?.toJSON() ?? null,
+            size: this._size.value,
+            duration: this.duration ? this._duration!.value : undefined,
         };
     }
 
     public toString(): string {
-        return `${this._type} -> ${this._url.toString()}`;
+        return `${this._type} -> ${this._url.value}`;
     }
 
     get url(): MediaURL {
@@ -109,5 +107,9 @@ export class PostMedia {
 
     get duration(): MediaDuration | null {
         return this._duration;
+    }
+
+    get id(): Uuid4 {
+        return this._id;
     }
 }

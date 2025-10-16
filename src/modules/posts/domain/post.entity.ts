@@ -7,7 +7,7 @@ import { PostTags } from './value-objects/post-tags.vo';
 import { PostStatus } from './value-objects/post-status.vo';
 import { MediaCollection } from './value-objects/media-collection.vo';
 import { Counter } from 'src/shared/domain/value-objects/counter.vo';
-import { PostMedia } from './value-objects/post-media.vo';
+import { PostMedia, PostMediaPropsPrimitives } from './post-media.entity';
 import { ArgumentInvalidException } from 'src/libs/exceptions/exceptions';
 
 export type CreatePostProps = {
@@ -26,6 +26,21 @@ export type CreatePostProps = {
     likesCount?: Counter;
     commentsCount?: Counter;
     viewsCount?: Counter;
+};
+
+export type PostPropsPrimitives = {
+    id: string;
+    authorId: string;
+    title: string;
+    content: string;
+    tags: string[];
+    media?: PostMediaPropsPrimitives[];
+    status: string;
+    createdAt: Date;
+    updatedAt: Date;
+    likesCount: number;
+    commentsCount: number;
+    viewsCount: number;
 };
 
 /**
@@ -174,14 +189,14 @@ export class Post {
     public addMedia(media: PostMedia): void {
         this.ensureNotDeleted('Cannot add media to a deleted post');
 
-        this._media = this._media.add(media);
+        this._media.add(media);
         this.touch();
     }
 
     public removeMedia(media: PostMedia): void {
         this.ensureNotDeleted('Cannot remove media from a deleted post');
 
-        this._media = this._media.remove(media);
+        this._media.remove(media.id);
         this.touch();
     }
 
@@ -237,6 +252,29 @@ export class Post {
     public addView(amount = 1): this {
         this._viewsCount.incrementBy(amount);
         return this;
+    }
+
+    /* Convert every property of Post entity into primitives
+     * Useful when working with interfaces that are unaware of
+     * domain entities, vo's
+     *
+     *
+     */
+    toObject(): PostPropsPrimitives {
+        return {
+            id: this._id.value,
+            authorId: this._authorId.value,
+            title: this._title.value,
+            content: this._content.value,
+            status: this._status.value,
+            media: this._media.toObjectArray(),
+            updatedAt: this._updatedAt.value.toDate(),
+            createdAt: this._createdAt.value.toDate(),
+            tags: this._tags.toArray(),
+            likesCount: this._likesCount.count,
+            viewsCount: this._viewsCount.count,
+            commentsCount: this._commentsCount.count,
+        };
     }
 
     /* Private helpers */

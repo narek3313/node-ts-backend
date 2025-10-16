@@ -35,10 +35,6 @@ export class MediaURL {
         }
     }
 
-    public toString(): string {
-        return this._value;
-    }
-
     public get value(): string {
         return this._value;
     }

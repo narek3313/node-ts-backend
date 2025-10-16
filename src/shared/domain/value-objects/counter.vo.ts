@@ -45,6 +45,10 @@ export class Counter {
         return new Counter({ count: 0, id });
     }
 
+    static from(count: number, id?: Uuid4): Counter {
+        return new Counter({ count, id });
+    }
+
     /**
      * Increment count by 1.
      * Returns the current instance for chaining.

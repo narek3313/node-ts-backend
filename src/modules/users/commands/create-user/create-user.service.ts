@@ -48,7 +48,7 @@ export class CreateUserService
             return Ok(user.id);
         } catch (err) {
             if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-                return Err(new UserAlreadyExistsError(err));
+                return Err(new UserAlreadyExistsError());
             }
 
             throw err;

@@ -15,7 +15,10 @@ import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
 
 @Injectable()
 export class UserRepository implements UserRepositoryContract {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly mapper: UserMapper,
+    ) {}
 
     async findById(userId: Uuid4): Promise<User | null> {
         const id = userId.value;
@@ -29,7 +32,7 @@ export class UserRepository implements UserRepositoryContract {
             return null;
         }
 
-        return UserMapper.createUserEntityFromDbRecord(user);
+        return this.mapper.toEntity(user);
     }
 
     async findAll(offset: number, limit: number): Promise<UserCollection> {
@@ -43,7 +46,7 @@ export class UserRepository implements UserRepositoryContract {
             this.prisma.user.count(),
         ]);
 
-        const userCollection = UserMapper.createUserCollectionFromDbRecord(users);
+        const userCollection = this.mapper.toCollection(users);
 
         const page = Math.floor(offset / limit) + 1;
         userCollection.setPagination(page, limit, total);
@@ -63,7 +66,7 @@ export class UserRepository implements UserRepositoryContract {
             return null;
         }
 
-        return UserMapper.createUserEntityFromDbRecord(user);
+        return this.mapper.toEntity(user);
     }
     async existsById(userId: Uuid4): Promise<IdResponse | null> {
         const id = userId.value;
@@ -129,8 +132,7 @@ export class UserRepository implements UserRepositoryContract {
         const data = user.toObject();
         const auth = _auth.toObject();
 
-        await this.prisma.user.create({ data });
-        await this.prisma.userAuth.create({ data: auth });
+        await this.prisma.user.create({ data: { ...data, auth: { create: { ...auth } } } });
 
         return new IdResponse(user.id);
     }
@@ -184,10 +186,7 @@ export class UserRepository implements UserRepositoryContract {
             await this.prisma.user.delete({ where: { id } });
             return true;
         } catch (err) {
-            if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-                return false;
-            }
-            throw err;
+            return false;
         }
     }
 }

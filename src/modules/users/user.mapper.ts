@@ -7,9 +7,11 @@ import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
 import { Email } from '../auth/domain/value-objects/email.vo';
 import { userDbRecord, userDbRecordArray } from 'src/db/db.records';
 import { UserCollection } from './domain/collections/users.collection';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class UserMapper {
-    static createUserEntityFromDbRecord(dr: userDbRecord): User {
+    toEntity(dr: userDbRecord): User {
         return User.create({
             id: Uuid4.from(dr.id),
             email: Email.create(dr.email),
@@ -20,7 +22,7 @@ export class UserMapper {
         });
     }
 
-    static createUserCollectionFromDbRecord(dr: userDbRecordArray): UserCollection {
+    toCollection(dr: userDbRecordArray): UserCollection {
         const col = UserCollection.create();
 
         dr.forEach((r) => {

@@ -28,6 +28,22 @@ export class PostStatus {
         return new PostStatus(PostStatusEnum.Archived);
     }
 
+    /** Factory that creates a PostStatus from a string (DB value) */
+    static fromString(status: string): PostStatus {
+        switch (status.toUpperCase()) {
+            case 'DRAFT':
+                return PostStatus.draft();
+            case 'PUBLISHED':
+                return PostStatus.published();
+            case 'ARCHIVED':
+                return PostStatus.archived();
+            case 'DELETED':
+                return PostStatus.deleted();
+            default:
+                throw new Error(`Invalid post status: ${status}`);
+        }
+    }
+
     /** Factory for deleted status. */
     static deleted(): PostStatus {
         return new PostStatus(PostStatusEnum.Deleted);

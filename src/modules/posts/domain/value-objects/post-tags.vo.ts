@@ -25,7 +25,7 @@ export class PostTags {
         return PostTags.create(ArrayHelper.remove(this.val, tags));
     }
 
-    get value(): string[] {
+    toArray(): string[] {
         return this.val;
     }
 }

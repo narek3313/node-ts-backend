@@ -1,7 +1,11 @@
+import { ArgumentInvalidException } from 'src/libs/exceptions/exceptions';
+
 export class MediaDuration {
     private constructor(private readonly seconds: number) {
         if (!Number.isFinite(seconds) || seconds < 0) {
-            throw new Error(`Duration must be a non-negative number of seconds, got: ${seconds}`);
+            throw new ArgumentInvalidException(
+                `Duration must be a non-negative number of seconds, got: ${seconds}`,
+            );
         }
     }
 
@@ -37,7 +41,7 @@ export class MediaDuration {
         return `${this.seconds} seconds`;
     }
 
-    public toJSON(): number {
+    get value(): number {
         return this.seconds;
     }
 }

@@ -20,3 +20,20 @@ export type sessionDbRecord = {
 };
 
 export type userDbRecordArray = userDbRecord[];
+
+export type postDbRecord = {
+    id: string;
+    authorId: string;
+    title: string;
+    content: string;
+    status: string;
+    tags: string[];
+    likesCount: number;
+    viewsCount: number;
+    commentsCount: number;
+    media: object[];
+    createdAt: Date;
+    updatedAt: Date;
+};
+
+export type postDbRecordArray = postDbRecord[];

@@ -66,7 +66,7 @@ export abstract class EntityCollection<T extends { id: Uuid4 }> {
     /**
      * Returns all entities as an array.
      */
-    getAll(): T[] {
+    toArray(): T[] {
         return Array.from(this.items.values());
     }
 

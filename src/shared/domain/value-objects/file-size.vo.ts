@@ -67,10 +67,6 @@ export class FileSize {
         return `${this.val} bytes`;
     }
 
-    public toJSON(): number {
-        return this.val;
-    }
-
     get value(): number {
         return this.val;
     }

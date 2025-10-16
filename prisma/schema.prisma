@@ -22,13 +22,14 @@ model User {
   updatedAt DateTime @updatedAt
 
   sessions Session[]
-  UserAuth UserAuth?
+  auth     UserAuth?
+  Post     Post[]
 }
 
 model UserAuth {
   userId              String    @id
   password            String
-  lastPasswordChange  DateTime? 
+  lastPasswordChange  DateTime?
   failedLoginAttempts Int       @default(0)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -48,7 +49,32 @@ model Session {
 }
 
 model Post {
-  id String @id
+  id            String   @id
+  authorId      String
+  likesCount    Int      @default(0)
+  viewsCount    Int      @default(0)
+  commentsCount Int      @default(0)
+  status        String   @default("DRAFT")
+  tags          String[] @default([])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime 
+
+  title   String
+  content String
+
+  author User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  media  PostMedia[]
+
+  @@index([authorId])
+}
+
+model PostMedia {
+  id     String @id
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  items Json
 }
 
 model Comment {
