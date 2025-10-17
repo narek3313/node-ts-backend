@@ -58,7 +58,7 @@ model Post {
   tags          String[] @default([])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  deletedAt     DateTime 
+  deletedAt     DateTime?
 
   title   String
   content String

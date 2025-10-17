@@ -11,7 +11,7 @@ import { MediaCollection } from '../domain/value-objects/media-collection.vo';
 import { PostMapper } from '../post.mapper';
 import { PostCollection } from '../domain/collections/posts.collection';
 import { PostTags } from '../domain/value-objects/post-tags.vo';
-import { Prisma } from '@prisma/client';
+import { NotFoundException } from 'src/libs/exceptions/exceptions';
 
 @Injectable()
 export class PostRepository implements PostRepositoryContract {
@@ -154,5 +154,31 @@ export class PostRepository implements PostRepositoryContract {
             orderBy: { createdAt: 'desc' },
         });
         return this.mapper.toCollection(posts);
+    }
+
+    async addTags(id: Uuid4, tags: PostTags): Promise<void> {
+        const post = await this.prisma.post.findUnique({ where: { id: id.value } });
+        if (!post) throw new NotFoundException('Post not found');
+
+        const currentTags = post.tags ?? [];
+        const newTags = Array.from(new Set([...currentTags, ...tags.toArray()]));
+
+        await this.prisma.post.update({
+            where: { id: id.value },
+            data: { tags: newTags },
+        });
+    }
+
+    async removeTags(id: Uuid4, tags: PostTags): Promise<void> {
+        const post = await this.prisma.post.findUnique({ where: { id: id.value } });
+        if (!post) throw new NotFoundException('Post not found');
+
+        const currentTags = post.tags ?? [];
+        const updatedTags = currentTags.filter((tag) => !tags.toArray().includes(tag));
+
+        await this.prisma.post.update({
+            where: { id: id.value },
+            data: { tags: updatedTags },
+        });
     }
 }

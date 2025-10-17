@@ -43,14 +43,15 @@ export class UpdatePasswordService
             const stored = await this.userRepo.getPassword(command.userId);
 
             if (!stored) {
-                throw new NotFoundException();
+                return Err(new NotFoundException());
             }
 
             const valid = verifyPassword(command.oldPassword.value, stored.value);
 
             if (!valid) {
-                throw new InvalidPasswordError();
+                return Err(new InvalidPasswordError());
             }
+
             const password = Password.create(hashPassword(command.newPassword.value));
 
             await this.userRepo.updatePassword(command.userId, password);

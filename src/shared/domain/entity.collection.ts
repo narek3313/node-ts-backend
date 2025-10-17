@@ -1,4 +1,5 @@
 import { Uuid4 } from './value-objects/uuid.vo';
+import { ArgumentOutOfRangeException } from 'src/libs/exceptions/exceptions';
 
 /**
  * Abstract base class for managing a collection of entities identified by UUID.
@@ -32,12 +33,12 @@ export abstract class EntityCollection<T extends { id: Uuid4 }> {
 
     /**
      * Adds a new entity to the collection.
-     * @throws {Error} If an entity with the same ID already exists.
+     * @throws {ArgumentOutOfRangeException} If an entity with the same ID already exists.
      */
     add(entity: T): void {
         const key = entity.id.value;
         if (this.items.has(key)) {
-            throw new Error(`Entity with id ${key} already exists`);
+            throw new ArgumentOutOfRangeException(`Entity with id ${key} already exists`);
         }
         this.items.set(key, entity);
     }
@@ -47,6 +48,21 @@ export abstract class EntityCollection<T extends { id: Uuid4 }> {
      */
     remove(entityId: Uuid4): void {
         this.items.delete(entityId.value);
+    }
+
+    /**
+     * Adds multiple entities to the collection.
+     * @throws {ArgumentOutOfRangeException} If any entity with the same ID already exists.
+     */
+    addMany(entities: T[]): void {
+        entities.forEach((entity) => this.add(entity));
+    }
+
+    /**
+     * Removes multiple entities from the collection by their IDs.
+     */
+    removeMany(entityIds: Uuid4[]): void {
+        entityIds.forEach((id) => this.remove(id));
     }
 
     /**

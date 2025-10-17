@@ -20,6 +20,8 @@ export interface PostRepositoryContract {
     updateTitle(id: Uuid4, title: Title): Promise<void>;
     updateContent(id: Uuid4, content: Content): Promise<void>;
     updateStatus(id: Uuid4, status: PostStatus): Promise<void>;
+    addTags(id: Uuid4, tags: PostTags): Promise<void>;
+    removeTags(id: Uuid4, tags: PostTags): Promise<void>;
     addMedia(id: Uuid4, media: MediaCollection): Promise<void>;
     removeMedia(postId: Uuid4, mediaId: Uuid4): Promise<void>;
     delete(id: Uuid4): Promise<boolean>;

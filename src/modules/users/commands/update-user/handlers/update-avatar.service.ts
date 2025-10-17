@@ -8,9 +8,8 @@ import { UniqueConstraintError } from 'src/modules/users/user.errors';
 /**
  * @commandhandler UpdateAvatarService
  * @description
- * Handles user avatar updates. Attempts to update the avatar URL
- * through the UserRepository and returns a Result indicating success
- * or an error if the user is not found.
+ * Handles user avatar updates through the domain model.
+ * Loads the user aggregate, applies domain logic, and persists changes.
  */
 @CommandHandler(ChangeUserAvatarCommand)
 export class UpdateAvatarService
@@ -22,21 +21,22 @@ export class UpdateAvatarService
 {
     constructor(private readonly userRepo: UserRepository) {}
 
-    /**
-     * @method execute
-     * @description Executes the ChangeUserAvatarCommand:
-     * 1. Updates the user's avatar in the repository.
-     * 2. Returns Result.Ok(true) if successful.
-     * 3. Returns Result.Err if the user does not exist.
-     * @param {ChangeUserAvatarCommand} command Contains the userId and new avatar VO.
-     * @returns {Promise<Result<boolean, NotFoundException>>}
-     */
-    async execute(command: ChangeUserAvatarCommand): Promise<Result<boolean, NotFoundException>> {
+    async execute(
+        command: ChangeUserAvatarCommand,
+    ): Promise<Result<boolean, NotFoundException | UniqueConstraintError>> {
         try {
-            await this.userRepo.updateAvatar(command.userId, command.avatar);
+            const user = await this.userRepo.findById(command.userId);
+            if (!user) {
+                return Err(new NotFoundException());
+            }
+
+            user.updateAvatar(command.avatar);
+
+            await this.userRepo.updateAvatar(user.id, user.avatar!);
+
             return Ok(true);
         } catch (err) {
-            if (err instanceof NotFoundException) {
+            if (err instanceof NotFoundException || err instanceof UniqueConstraintError) {
                 return Err(err);
             }
             throw err;

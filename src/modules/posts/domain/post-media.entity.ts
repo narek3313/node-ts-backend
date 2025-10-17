@@ -1,4 +1,5 @@
 import { MediaType } from 'src/libs/enums/post-media-type';
+import { ArgumentInvalidException } from 'src/libs/exceptions/exceptions';
 import { FileSize } from 'src/shared/domain/value-objects/file-size.vo';
 import { MediaDuration } from 'src/shared/domain/value-objects/media-duration.vo';
 import { MediaURL } from 'src/shared/domain/value-objects/media-url.vo';
@@ -87,6 +88,74 @@ export class PostMedia {
             size: this._size.value,
             duration: this.duration ? this._duration!.value : undefined,
         };
+    }
+
+    /**
+     * Dynamically creates a PostMedia instance from a single primitive input.
+     */
+    public static fromPrimitive(m: PostMediaPropsPrimitives): PostMedia {
+        const id = Uuid4.create();
+        const url = MediaURL.create(m.url);
+        const size = FileSize.fromBytes(m.size);
+        const duration = m.duration != null ? MediaDuration.fromSeconds(m.duration) : null;
+
+        switch (m.type) {
+            case MediaType.AUDIO:
+                return PostMedia.createAudio({ id, url, type: MediaType.AUDIO, size, duration });
+            case MediaType.VIDEO:
+                return PostMedia.createVideo({ id, url, type: MediaType.VIDEO, size, duration });
+            case MediaType.IMAGE:
+                return PostMedia.createImage({
+                    id,
+                    url,
+                    type: MediaType.IMAGE,
+                    size,
+                    duration: null,
+                });
+            default:
+                throw new ArgumentInvalidException(`Unsupported media type: ${m.type}`);
+        }
+    }
+
+    /**
+     * Dynamically creates an array of PostMedia from raw DTO/primitive array
+     */
+    public static fromArray(mediaArray: PostMediaPropsPrimitives[]): PostMedia[] {
+        return (mediaArray ?? []).map((m) => {
+            const id = Uuid4.create();
+            const url = MediaURL.create(m.url);
+            const size = FileSize.fromBytes(m.size);
+            const duration = m.duration != null ? MediaDuration.fromSeconds(m.duration) : null;
+
+            switch (m.type) {
+                case MediaType.AUDIO:
+                    return PostMedia.createAudio({
+                        id,
+                        url,
+                        type: MediaType.AUDIO,
+                        size,
+                        duration,
+                    });
+                case MediaType.VIDEO:
+                    return PostMedia.createVideo({
+                        id,
+                        url,
+                        type: MediaType.VIDEO,
+                        size,
+                        duration,
+                    });
+                case MediaType.IMAGE:
+                    return PostMedia.createImage({
+                        id,
+                        url,
+                        type: MediaType.IMAGE,
+                        size,
+                        duration: null,
+                    });
+                default:
+                    throw new ArgumentInvalidException(`Unsupported media type: ${m.type}`);
+            }
+        });
     }
 
     public toString(): string {

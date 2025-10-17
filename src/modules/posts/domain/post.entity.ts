@@ -9,6 +9,7 @@ import { MediaCollection } from './value-objects/media-collection.vo';
 import { Counter } from 'src/shared/domain/value-objects/counter.vo';
 import { PostMedia, PostMediaPropsPrimitives } from './post-media.entity';
 import { ArgumentInvalidException } from 'src/libs/exceptions/exceptions';
+import { DateTime } from 'src/libs/utils/date-time';
 
 export type CreatePostProps = {
     id: Uuid4;
@@ -22,6 +23,7 @@ export type CreatePostProps = {
     status?: PostStatus;
     createdAt?: CreatedAt;
     updatedAt?: UpdatedAt;
+    deletedAt?: DateTime;
     media?: MediaCollection;
     likesCount?: Counter;
     commentsCount?: Counter;
@@ -38,6 +40,7 @@ export type PostPropsPrimitives = {
     status: string;
     createdAt: Date;
     updatedAt: Date;
+    deletedAt?: Date;
     likesCount: number;
     commentsCount: number;
     viewsCount: number;
@@ -118,6 +121,7 @@ export class Post {
     private _likesCount: Counter;
     private _commentsCount: Counter;
     private _viewsCount: Counter;
+    private _deletedAt?: DateTime;
 
     /* Posts are always created with Draft status
      * Might be changed in the future
@@ -131,6 +135,7 @@ export class Post {
         this._status = props.status ?? PostStatus.draft();
         this._createdAt = props.createdAt ?? CreatedAt.now();
         this._updatedAt = props.updatedAt ?? UpdatedAt.now();
+        this._deletedAt = props.deletedAt ?? undefined;
         this._media = props.media ?? MediaCollection.empty();
         this._likesCount = props.likesCount ?? Counter.zero();
         this._commentsCount = props.commentsCount ?? Counter.zero();
@@ -186,10 +191,10 @@ export class Post {
 
     /* Content updates */
 
-    public addMedia(media: PostMedia): void {
+    public addMedia(media: PostMedia[]): void {
         this.ensureNotDeleted('Cannot add media to a deleted post');
 
-        this._media.add(media);
+        this._media.addMany(media);
         this.touch();
     }
 
@@ -270,6 +275,7 @@ export class Post {
             media: this._media.toObjectArray(),
             updatedAt: this._updatedAt.value.toDate(),
             createdAt: this._createdAt.value.toDate(),
+            deletedAt: this._deletedAt ? this._deletedAt.toDate() : undefined,
             tags: this._tags.toArray(),
             likesCount: this._likesCount.count,
             viewsCount: this._viewsCount.count,
@@ -321,7 +327,15 @@ export class Post {
         return this._updatedAt;
     }
 
-    get media(): PostMedia[] {
+    get deletedAt(): DateTime | undefined {
+        return this._deletedAt ?? undefined;
+    }
+
+    get mediaCollection(): MediaCollection {
+        return this._media;
+    }
+
+    get mediaArray(): PostMedia[] {
         return this._media.toArray();
     }
 }

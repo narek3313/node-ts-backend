@@ -35,7 +35,13 @@ export class UpdateUsernameService
         command: ChangeUserUsernameCommand,
     ): Promise<Result<boolean, NotFoundException | UniqueConstraintError>> {
         try {
-            await this.userRepo.updateUsername(command.userId, command.username);
+            const user = await this.userRepo.findById(command.userId);
+            if (!user) return Err(new NotFoundException());
+
+            user.updateUsername(command.username);
+
+            await this.userRepo.updateUsername(user.id, user.username);
+
             return Ok(true);
         } catch (err) {
             if (err instanceof NotFoundException || err instanceof UniqueConstraintError) {

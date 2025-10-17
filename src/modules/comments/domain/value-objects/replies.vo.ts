@@ -39,7 +39,7 @@ export class Replies extends EntityCollection<Comment> {
      * @returns An array of Comment entities authored by the given user
      */
     findByAuthor(authorId: Uuid4): Comment[] {
-        return this.getAll().filter((comment) => comment.authorId.equals(authorId));
+        return this.toArray().filter((comment) => comment.authorId.equals(authorId));
     }
 
     /**
@@ -49,8 +49,8 @@ export class Replies extends EntityCollection<Comment> {
      * @returns Array of recent Comment entities sorted newest first
      */
     findRecent(limit: number): Comment[] {
-        return this.getAll()
-            .sort((a, b) => b.createdAt.time.toMillis() - a.createdAt.time.toMillis())
+        return this.toArray()
+            .sort((a, b) => b.createdAt.value.toMillis() - a.createdAt.value.toMillis())
             .slice(0, limit);
     }
 }

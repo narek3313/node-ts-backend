@@ -7,7 +7,6 @@ import { MediaURL } from 'src/shared/domain/value-objects/media-url.vo';
 import { Email } from 'src/modules/auth/domain/value-objects/email.vo';
 import { Username } from 'src/modules/auth/domain/value-objects/username.vo';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
-import { Prisma } from '@prisma/client';
 import { UserMapper } from '../user.mapper';
 import { UserCollection } from '../domain/collections/users.collection';
 import { UserAuth } from '../domain/user-auth.entity';
