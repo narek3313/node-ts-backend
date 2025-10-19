@@ -7,6 +7,8 @@ import { PostRepository } from '../../infrastructure/post.repository';
 import { Post } from '../../domain/post.entity';
 import { Ok, Err } from 'oxide.ts';
 import { Prisma } from '@prisma/client';
+import { Inject } from '@nestjs/common';
+import { POST_REPOSITORY } from '../../post.di-tokens';
 
 /**
  * @commandhandler CreatePostService
@@ -19,7 +21,7 @@ import { Prisma } from '@prisma/client';
 export class CreatePostService
     implements ICommandHandler<CreatePostCommand, Result<Uuid4, InvalidPostDataError>>
 {
-    constructor(private readonly postRepo: PostRepository) {}
+    constructor(@Inject(POST_REPOSITORY) private readonly postRepo: PostRepository) {}
 
     /**
      * @method execute

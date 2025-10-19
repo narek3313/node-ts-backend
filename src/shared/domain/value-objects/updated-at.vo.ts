@@ -9,11 +9,19 @@ export class UpdatedAt {
     }
 
     public static from(value: DateTime | Date): UpdatedAt {
-        if (!(value instanceof DateTime) || !(value instanceof Date) || isNaN(value.toMillis())) {
+        if (value instanceof DateTime) {
+            if (isNaN(value.toMillis())) {
+                throw new ArgumentInvalidException('Invalid UpdatedAt timestamp');
+            }
+        } else if (!(value instanceof Date)) {
             throw new ArgumentInvalidException('Invalid UpdatedAt timestamp');
         }
 
-        return new UpdatedAt(value);
+        if (value instanceof Date) {
+            return new UpdatedAt(DateTime.fromDate(value));
+        } else {
+            return new UpdatedAt(value);
+        }
     }
 
     public getValue(): DateTime {
@@ -21,7 +29,13 @@ export class UpdatedAt {
     }
 
     public equals(other: UpdatedAt): boolean {
-        return this._value === other.value;
+        if (this._value instanceof DateTime && other.value instanceof DateTime) {
+            return this._value.toMillis() === other.value.toMillis();
+        }
+        if (this._value instanceof Date && other.value instanceof Date) {
+            return this._value.getTime() === other.value.getTime();
+        }
+        return false;
     }
 
     get value(): DateTime {

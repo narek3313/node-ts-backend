@@ -1,13 +1,9 @@
-import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
-import { JwtToken } from './domain/value-objects/token.vo';
 import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
 import { ExpiresAt } from 'src/shared/domain/value-objects/expires-at.vo';
 import { DateTime } from 'src/libs/utils/date-time';
+import { JwtToken } from './token.vo';
 
 export type CreateAccessTokenProps = {
-    id: Uuid4;
-    sessionId: Uuid4;
-    userId: Uuid4;
     token: JwtToken;
     createdAt?: CreatedAt;
 };
@@ -23,20 +19,14 @@ export type CreateAccessTokenProps = {
  * change that parameter
  */
 export class AccessToken {
-    private _id: Uuid4;
-    private _sessionId: Uuid4;
-    private _userId: Uuid4;
     private _token: JwtToken;
     private _expiresAt: ExpiresAt;
     private _createdAt: CreatedAt;
 
     private constructor(props: CreateAccessTokenProps) {
-        this._id = props.id;
-        this._sessionId = props.sessionId;
-        this._userId = props.userId;
         this._token = props.token;
         // Expires after 1 hour.
-        this._expiresAt = ExpiresAt.create(DateTime.now().add({ hours: 1 }));
+        this._expiresAt = props.token.expiresAt;
         this._createdAt = props.createdAt ?? CreatedAt.now();
     }
 
@@ -45,18 +35,6 @@ export class AccessToken {
     }
 
     /* getters */
-
-    get id(): Uuid4 {
-        return this._id;
-    }
-
-    get sessionId(): Uuid4 {
-        return this._sessionId;
-    }
-
-    get userId(): Uuid4 {
-        return this._userId;
-    }
 
     get token(): JwtToken {
         return this._token;
@@ -76,10 +54,9 @@ export class AccessToken {
 
     /**
      * Checks equality with another AccessToken.
-     * Tokens are equal if their IDs are the same.
      */
     public equals(other: AccessToken): boolean {
         if (!other) return false;
-        return this._id.equals(other.id);
+        return this._token.equals(other.token);
     }
 }

@@ -28,6 +28,7 @@ export type UserPropsPrimitives = {
     email: string;
     username: string;
     avatar?: string | null;
+    posts: Uuid4[];
     createdAt: Date;
     updatedAt: Date;
 };
@@ -90,6 +91,7 @@ export class User {
     private _createdAt: CreatedAt;
     private _updatedAt: UpdatedAt;
     private _sessions: SessionCollection;
+    private _posts: Uuid4[];
 
     private constructor(props: CreateUserProps) {
         this._id = props.id || Uuid4.create();
@@ -122,6 +124,47 @@ export class User {
         return this._sessions.getById(sessionId);
     }
 
+    /* post managment */
+
+    /**
+     * Adds a post ID to the user's aggregate.
+     * Throws if the post ID already exists.
+     */
+    addPost(postId: Uuid4): this {
+        if (this._posts.includes(postId)) {
+            throw new Error('Post already added to user.');
+        }
+        this._posts.push(postId);
+        return this;
+    }
+
+    /**
+     * Removes a post ID from the user's aggregate.
+     * Throws if the post ID does not exist.
+     */
+    removePost(postId: Uuid4): this {
+        const index = this._posts.indexOf(postId);
+        if (index === -1) {
+            throw new Error('Post not found for this user.');
+        }
+        this._posts.splice(index, 1);
+        return this;
+    }
+
+    /**
+     * Returns a copy of the user's post IDs.
+     */
+    getPostIds(): Uuid4[] {
+        return [...this._posts];
+    }
+
+    /**
+     * Checks if the user has a specific post ID.
+     */
+    hasPost(postId: Uuid4): boolean {
+        return this._posts.includes(postId);
+    }
+
     /* updates */
 
     updateUsername(newUsername: Username) {
@@ -148,6 +191,7 @@ export class User {
             username: this._username.value,
             email: this._email.value,
             avatar: this._avatar?.value ?? null,
+            posts: this._posts,
             createdAt: this._createdAt.value.toDate(),
             updatedAt: this._updatedAt.value.toDate(),
         };
@@ -187,5 +231,12 @@ export class User {
     /* Returns an array of active sessions*/
     get activeSessions(): Session[] {
         return this._sessions.activeSessions;
+    }
+
+    /**
+     * Returns the number of posts for this user.
+     */
+    get postsCount(): number {
+        return this._posts.length;
     }
 }

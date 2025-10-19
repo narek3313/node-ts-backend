@@ -9,8 +9,10 @@ import { Username } from 'src/modules/auth/domain/value-objects/username.vo';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 import { UserMapper } from '../user.mapper';
 import { UserCollection } from '../domain/collections/users.collection';
-import { UserAuth } from '../domain/user-auth.entity';
+import { UserAuth, UserAuthWithRole } from '../domain/user-auth.entity';
 import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
+import { Prisma } from '@prisma/client';
+import { UniqueConstraintError } from '../user.errors';
 
 @Injectable()
 export class UserRepository implements UserRepositoryContract {
@@ -32,6 +34,26 @@ export class UserRepository implements UserRepositoryContract {
         }
 
         return this.mapper.toEntity(user);
+    }
+
+    async findAuthByEmail(_email: Email): Promise<UserAuthWithRole | null> {
+        const email = _email.value;
+
+        const auth = await this.prisma.user.findFirst({
+            where: { email },
+            select: { auth: true, role: true },
+        });
+
+        if (!auth || !auth.auth || !auth.role) {
+            return null;
+        }
+
+        const { role, auth: authData } = auth;
+
+        return this.mapper.toAuthEntity({
+            role: role as 'user' | 'admin' | 'moderator',
+            auth: authData,
+        });
     }
 
     async findAll(offset: number, limit: number): Promise<UserCollection> {
@@ -170,12 +192,19 @@ export class UserRepository implements UserRepositoryContract {
 
     async updateUsername(userId: Uuid4, username: Username): Promise<void> {
         const id = userId.value;
-        await this.prisma.user.update({
-            where: { id },
-            data: {
-                username: username.value,
-            },
-        });
+        try {
+            await this.prisma.user.update({
+                where: { id },
+                data: {
+                    username: username.value,
+                },
+            });
+        } catch (err) {
+            if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+                throw new UniqueConstraintError();
+            }
+            throw err;
+        }
     }
 
     async delete(userId: Uuid4): Promise<boolean> {

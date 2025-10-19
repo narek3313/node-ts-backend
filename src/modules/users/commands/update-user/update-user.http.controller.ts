@@ -19,7 +19,11 @@ import {
 } from './update-user.command';
 import { Email } from 'src/modules/auth/domain/value-objects/email.vo';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
-import { InvalidPasswordError, UniqueConstraintError } from '../../user.errors';
+import {
+    InvalidOldPasswordError,
+    SamePasswordError,
+    UniqueConstraintError,
+} from '../../user.errors';
 import { NotFoundException } from 'src/libs/exceptions/exceptions';
 import { Result, match } from 'oxide.ts';
 import { UpdateUsernameDto } from './dtos/update-username.request.dto';
@@ -92,8 +96,9 @@ export class UpdateUserHttpController {
         match(result, {
             Ok: () => {},
             Err: (err: Error) => {
-                if (err instanceof NotFoundException) throw new Http404(err);
-                if (err instanceof UniqueConstraintError) throw new Http409(err);
+                if (err instanceof NotFoundException) throw new Http404(err.message);
+                if (err instanceof UniqueConstraintError)
+                    throw new Http409('Username already exists');
                 throw err;
             },
         });
@@ -115,14 +120,17 @@ export class UpdateUserHttpController {
         const userId = Uuid4.from(_id);
         const command = new ChangeUserPasswordCommand({ userId, oldPassword, newPassword });
 
-        const result: Result<boolean, NotFoundException | InvalidPasswordError> =
-            await this.commandBus.execute(command);
+        const result: Result<
+            boolean,
+            NotFoundException | InvalidOldPasswordError | SamePasswordError
+        > = await this.commandBus.execute(command);
 
         match(result, {
             Ok: () => {},
             Err: (err: Error) => {
-                if (err instanceof NotFoundException) throw new Http404(err);
-                if (err instanceof InvalidPasswordError) throw new Http400(err);
+                if (err instanceof NotFoundException) throw new Http404(err.message);
+                if (err instanceof InvalidOldPasswordError || err instanceof SamePasswordError)
+                    throw new Http400(err.message);
                 throw err;
             },
         });

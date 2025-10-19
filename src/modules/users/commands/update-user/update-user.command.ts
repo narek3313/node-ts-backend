@@ -12,6 +12,7 @@ export class ChangeUserEmailCommand extends Command {
     constructor(props: CommandProps<ChangeUserEmailCommand>) {
         super(props);
         this.email = props.email;
+        this.userId = props.userId;
     }
 }
 
@@ -22,6 +23,7 @@ export class ChangeUserUsernameCommand extends Command {
     constructor(props: CommandProps<ChangeUserUsernameCommand>) {
         super(props);
         this.username = props.username;
+        this.userId = props.userId;
     }
 }
 
@@ -32,6 +34,7 @@ export class ChangeUserPasswordCommand extends Command {
 
     constructor(props: CommandProps<ChangeUserPasswordCommand>) {
         super(props);
+        this.userId = props.userId;
         this.newPassword = props.newPassword;
         this.oldPassword = props.oldPassword;
     }
@@ -43,6 +46,7 @@ export class ChangeUserAvatarCommand extends Command {
 
     constructor(props: CommandProps<ChangeUserAvatarCommand>) {
         super(props);
+        this.userId = props.userId;
         this.avatar = props.avatar;
     }
 }

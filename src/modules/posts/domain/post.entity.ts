@@ -262,8 +262,6 @@ export class Post {
     /* Convert every property of Post entity into primitives
      * Useful when working with interfaces that are unaware of
      * domain entities, vo's
-     *
-     *
      */
     toObject(): PostPropsPrimitives {
         return {

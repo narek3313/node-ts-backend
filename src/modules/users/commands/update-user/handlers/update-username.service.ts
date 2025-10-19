@@ -4,6 +4,8 @@ import { UserRepository } from 'src/modules/users/infrastructure/user.repository
 import { Result, Ok, Err } from 'oxide.ts';
 import { NotFoundException } from 'src/libs/exceptions/exceptions';
 import { UniqueConstraintError } from 'src/modules/users/user.errors';
+import { USER_REPOSITORY } from 'src/modules/users/user.di-tokens';
+import { Inject } from '@nestjs/common';
 
 /**
  * @commandhandler UpdateUsernameService
@@ -20,7 +22,7 @@ export class UpdateUsernameService
             Result<boolean, NotFoundException | UniqueConstraintError>
         >
 {
-    constructor(private readonly userRepo: UserRepository) {}
+    constructor(@Inject(USER_REPOSITORY) private readonly userRepo: UserRepository) {}
 
     /**
      * @method execute

@@ -3,10 +3,9 @@ import { JwtToken } from './domain/value-objects/token.vo';
 import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
 import { RevokedAt } from 'src/shared/domain/value-objects/revoked-at.vo';
 import { ExpiresAt } from 'src/shared/domain/value-objects/expires-at.vo';
-import { DateTime } from 'src/libs/utils/date-time';
 
 export type CreateRefreshTokenProps = {
-    id: Uuid4;
+    id?: Uuid4;
     sessionId: Uuid4;
     token: JwtToken;
     createdAt?: CreatedAt;
@@ -54,7 +53,6 @@ export type CreateRefreshTokenProps = {
  *   4. Expired or revoked tokens cannot issue new access tokens.
  */
 export class RefreshToken {
-    private _id: Uuid4;
     private _sessionId: Uuid4;
     private _token: JwtToken;
     private _expiresAt: ExpiresAt;
@@ -62,11 +60,10 @@ export class RefreshToken {
     private _revokedAt: RevokedAt;
 
     private constructor(props: CreateRefreshTokenProps) {
-        this._id = props.id;
         this._sessionId = props.sessionId;
         this._token = props.token;
         // Expires after 7 days. The DateTime class will be changed to a more readable model
-        this._expiresAt = ExpiresAt.create(DateTime.now().add({ days: 7 }));
+        this._expiresAt = props.token.expiresAt;
         this._createdAt = props.createdAt ?? CreatedAt.now();
         this._revokedAt = props.revokedAt ?? RevokedAt.none();
     }
@@ -81,11 +78,12 @@ export class RefreshToken {
         }
     }
 
+    public restoreExpiresAt(date: Date): void {
+        this._expiresAt = ExpiresAt.from(date);
+    }
+
     /* getters */
 
-    get id(): Uuid4 {
-        return this._id;
-    }
     get sessionId(): Uuid4 {
         return this._sessionId;
     }

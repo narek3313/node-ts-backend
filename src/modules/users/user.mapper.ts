@@ -5,9 +5,12 @@ import { MediaURL } from 'src/shared/domain/value-objects/media-url.vo';
 import { UpdatedAt } from 'src/shared/domain/value-objects/updated-at.vo';
 import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
 import { Email } from '../auth/domain/value-objects/email.vo';
-import { userDbRecord, userDbRecordArray } from 'src/db/db.records';
+import { userAuthDbRecord, userDbRecord, userDbRecordArray } from 'src/db/db.records';
 import { UserCollection } from './domain/collections/users.collection';
 import { Injectable } from '@nestjs/common';
+import { UserAuth, UserAuthWithRole } from './domain/user-auth.entity';
+import { Password } from '../auth/domain/value-objects/password.vo';
+import { Role } from './domain/value-objects/roles.vo';
 
 @Injectable()
 export class UserMapper {
@@ -20,6 +23,31 @@ export class UserMapper {
             updatedAt: UpdatedAt.from(dr.updatedAt),
             createdAt: CreatedAt.from(dr.createdAt),
         });
+    }
+
+    toAuthEntity(dr: userAuthDbRecord): UserAuthWithRole {
+        const u = UserAuth.create({
+            userId: Uuid4.from(dr.auth.userId),
+            password: Password.create(dr.auth.password),
+            lastPasswordChange: dr.auth.lastPasswordChange
+                ? UpdatedAt.from(dr.auth.lastPasswordChange)
+                : undefined,
+            failedLoginAttempts: dr.auth.failedLoginAttempts,
+        });
+
+        const role = Role.create(dr.role);
+
+        const result: UserAuthWithRole = {
+            auth: {
+                userId: u.userId,
+                password: u.password,
+                lastPasswordChange: u.lastPasswordChange,
+                failedLoginAttempts: u.failedLoginAttempts,
+            },
+            role,
+        };
+
+        return result;
     }
 
     toCollection(dr: userDbRecordArray): UserCollection {

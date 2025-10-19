@@ -5,7 +5,9 @@ import { Result, Ok, Err } from 'oxide.ts';
 import { NotFoundException } from 'src/libs/exceptions/exceptions';
 import { hashPassword, verifyPassword } from 'src/libs/utils/hash';
 import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
-import { InvalidPasswordError } from 'src/modules/users/user.errors';
+import { InvalidOldPasswordError, SamePasswordError } from 'src/modules/users/user.errors';
+import { USER_REPOSITORY } from 'src/modules/users/user.di-tokens';
+import { Inject } from '@nestjs/common';
 
 /**
  * @commandhandler UpdatePasswordService
@@ -20,10 +22,10 @@ export class UpdatePasswordService
     implements
         ICommandHandler<
             ChangeUserPasswordCommand,
-            Result<boolean, NotFoundException | InvalidPasswordError>
+            Result<boolean, NotFoundException | InvalidOldPasswordError | SamePasswordError>
         >
 {
-    constructor(private readonly userRepo: UserRepository) {}
+    constructor(@Inject(USER_REPOSITORY) private readonly userRepo: UserRepository) {}
 
     /**
      * @method execute
@@ -32,14 +34,18 @@ export class UpdatePasswordService
      * 2. Validates the old password.
      * 3. Hashes and updates the new password in the repository.
      * @param {ChangeUserPasswordCommand} command Contains userId, oldPassword, and newPassword VOs.
-     * @returns {Promise<Result<boolean, NotFoundException | InvalidPasswordError>>}
+     * @returns {Promise<Result<boolean, NotFoundException | InvalidPasswordError | SamePasswordError>>}
      * Result.Ok(true) if password was updated successfully,
      * or Result.Err with NotFoundException / InvalidPasswordError.
      */
     async execute(
         command: ChangeUserPasswordCommand,
-    ): Promise<Result<boolean, NotFoundException | InvalidPasswordError>> {
+    ): Promise<Result<boolean, NotFoundException | InvalidOldPasswordError | SamePasswordError>> {
         try {
+            if (command.oldPassword.equals(command.newPassword)) {
+                throw new SamePasswordError();
+            }
+
             const stored = await this.userRepo.getPassword(command.userId);
 
             if (!stored) {
@@ -49,7 +55,7 @@ export class UpdatePasswordService
             const valid = verifyPassword(command.oldPassword.value, stored.value);
 
             if (!valid) {
-                return Err(new InvalidPasswordError());
+                return Err(new InvalidOldPasswordError());
             }
 
             const password = Password.create(hashPassword(command.newPassword.value));
@@ -58,7 +64,11 @@ export class UpdatePasswordService
 
             return Ok(true);
         } catch (err) {
-            if (err instanceof NotFoundException || err instanceof InvalidPasswordError) {
+            if (
+                err instanceof NotFoundException ||
+                err instanceof InvalidOldPasswordError ||
+                err instanceof SamePasswordError
+            ) {
                 return Err(err);
             }
             throw err;

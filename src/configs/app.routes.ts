@@ -1,5 +1,6 @@
 const usersRoot = 'users';
 const postsRoot = 'posts';
+const authRoot = 'auth';
 
 const v1 = 'v1';
 
@@ -13,5 +14,9 @@ export const routesV1 = {
     post: {
         root: postsRoot,
         delete: `/${postsRoot}/:id`,
+    },
+
+    auth: {
+        root: authRoot,
     },
 };

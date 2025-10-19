@@ -9,11 +9,11 @@ export class CreateUserRequestDto {
 
     @MaxLength(30)
     @MinLength(3)
-    @Matches(USERNAME_REGEX)
+    @Matches(USERNAME_REGEX, { message: 'Wrong username format' })
     readonly username: string;
 
     @MaxLength(64)
     @MinLength(8)
-    @Matches(PASSWORD_REGEX)
+    @Matches(PASSWORD_REGEX, { message: 'Wrong password format' })
     readonly password: string;
 }

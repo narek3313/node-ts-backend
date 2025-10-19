@@ -2,16 +2,22 @@ import { ArgumentInvalidException } from 'src/libs/exceptions/exceptions';
 import { DateTime } from 'src/libs/utils/date-time';
 
 export class ExpiresAt {
-    private constructor(private readonly value: DateTime) {}
+    private constructor(private readonly _value: DateTime) {}
 
-    public static create(value: DateTime): ExpiresAt {
-        if (!(value instanceof DateTime) || isNaN(value.toMillis())) {
-            throw new ArgumentInvalidException('ExpiresAt must be a valid date');
+    public static from(value: DateTime | Date): ExpiresAt {
+        if (value instanceof DateTime) {
+            if (isNaN(value.toMillis())) {
+                throw new ArgumentInvalidException('Invalid ExpiresAt timestamp');
+            }
+        } else if (!(value instanceof Date)) {
+            throw new ArgumentInvalidException('Invalid ExpiresAt timestamp');
         }
-        if (value.toMillis() <= DateTime.now().toMillis()) {
-            throw new ArgumentInvalidException('ExpiresAt must be in the future');
+
+        if (value instanceof Date) {
+            return new ExpiresAt(DateTime.fromDate(value));
+        } else {
+            return new ExpiresAt(value);
         }
-        return new ExpiresAt(value);
     }
 
     // Optional `now` parameter allows testing against a specific time
@@ -21,7 +27,7 @@ export class ExpiresAt {
             : this.value.toMillis() < DateTime.now().toMillis();
     }
 
-    public getValue(): DateTime {
-        return this.value;
+    get value(): DateTime {
+        return this._value;
     }
 }

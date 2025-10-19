@@ -11,6 +11,8 @@ import { AddPostMediaService } from './commands/update-post/handlers/add-media.s
 import { DeletePostMediaService } from './commands/update-post/handlers/delete-media.service';
 import { AddPostTagsService } from './commands/update-post/handlers/add-tags.service';
 import { DeletePostTagsService } from './commands/update-post/handlers/delete-tags.service';
+import { PostRepository } from './infrastructure/post.repository';
+import { POST_REPOSITORY } from './post.di-tokens';
 
 const httpControllers = [
     UpdatePostHttpController,
@@ -29,10 +31,11 @@ const commandHandlers: Provider[] = [
 ];
 
 const mappers: Provider[] = [PostMapper];
+const repositories: Provider[] = [{ provide: POST_REPOSITORY, useClass: PostRepository }];
 
 @Module({
-    imports: [CqrsModule],
+    imports: [CqrsModule, PostModule],
     controllers: [...httpControllers],
-    providers: [...commandHandlers, ...mappers],
+    providers: [...commandHandlers, ...mappers, ...repositories],
 })
-export class UserModule {}
+export class PostModule {}

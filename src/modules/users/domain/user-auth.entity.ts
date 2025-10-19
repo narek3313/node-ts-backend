@@ -1,6 +1,7 @@
 import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
 import { UpdatedAt } from 'src/shared/domain/value-objects/updated-at.vo';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
+import { Role } from './value-objects/roles.vo';
 
 export type CreateUserAuthProps = {
     userId: Uuid4;
@@ -9,11 +10,25 @@ export type CreateUserAuthProps = {
     failedLoginAttempts?: number;
 };
 
+/*
+ * Type is omitting the userId. Becuase when this object is used in db
+ * user creation the userId is already set and not needed from this entity
+ */
 export type UserAuthPrimitives = {
-    userId: string;
     password: string;
     lastPasswordChange?: Date;
     failedLoginAttempts?: number;
+};
+
+/* Used inside login service to create payload */
+export type UserAuthWithRole = {
+    auth: {
+        userId: Uuid4;
+        password: Password;
+        lastPasswordChange: UpdatedAt | undefined;
+        failedLoginAttempts: number;
+    };
+    role: Role;
 };
 
 /**
@@ -74,7 +89,6 @@ export class UserAuth {
 
     toObject(): UserAuthPrimitives {
         return {
-            userId: this._userId.value,
             password: this._password.value,
             lastPasswordChange: this._lastPasswordChange?.value.toDate(),
             failedLoginAttempts: this._failedLoginAttempts,

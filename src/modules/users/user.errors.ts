@@ -20,12 +20,22 @@ export class UniqueConstraintError extends ExceptionBase {
     }
 }
 
-export class InvalidPasswordError extends ExceptionBase {
-    static readonly message = 'Invalid password';
+export class InvalidOldPasswordError extends ExceptionBase {
+    static readonly message = 'Invalid old password';
 
-    public readonly code = 'USER.INVLD_PSWRD';
+    public readonly code = 'USER.INVALID_PASSWORD';
 
     constructor(cause?: Error, metadata?: unknown) {
-        super(InvalidPasswordError.message, cause, metadata);
+        super(InvalidOldPasswordError.message, cause, metadata);
+    }
+}
+
+export class SamePasswordError extends ExceptionBase {
+    static readonly message = 'New password can not be same as the old password';
+
+    public readonly code = 'USER.SAME_PASSWORD';
+
+    constructor(cause?: Error, metadata?: unknown) {
+        super(SamePasswordError.message, cause, metadata);
     }
 }

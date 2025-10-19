@@ -3,6 +3,8 @@ import { Result, Ok, Err } from 'oxide.ts';
 import { NotFoundException } from 'src/libs/exceptions/exceptions';
 import { PostRepository } from 'src/modules/posts/infrastructure/post.repository';
 import { DeletePostTagsCommand } from '../update-post.command';
+import { POST_REPOSITORY } from 'src/modules/posts/post.di-tokens';
+import { Inject } from '@nestjs/common';
 
 /**
  * @commandhandler DeletePostTagsService
@@ -13,7 +15,7 @@ import { DeletePostTagsCommand } from '../update-post.command';
 export class DeletePostTagsService
     implements ICommandHandler<DeletePostTagsCommand, Result<boolean, NotFoundException>>
 {
-    constructor(private readonly postRepo: PostRepository) {}
+    constructor(@Inject(POST_REPOSITORY) private readonly postRepo: PostRepository) {}
 
     async execute(command: DeletePostTagsCommand): Promise<Result<boolean, NotFoundException>> {
         try {

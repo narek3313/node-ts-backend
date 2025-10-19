@@ -3,21 +3,81 @@ import { Session } from '../session.entity';
 import { SessionCollection } from './collections/session.collection';
 
 /**
- * Domain-level contract for Auth repository implementations.
+ * Domain-level contract for authentication repository implementations.
  *
- * Acts as a blueprint for persistence operations involving Auth-related entities.
- * Any concrete repository (e.g., database, in-memory, or API-backed)
- * must implement this interface and follow its defined behavior.
+ * Combines user auth and session operations into a single cohesive interface.
+ * Any concrete repository (e.g., database, in-memory, Prisma) must implement this.
  */
 export interface AuthRepositoryContract {
-    saveSession(session: Session): Promise<void>;
+    /**
+     * Find a UserAuth by email.
+     * Returns null if not found.
+     */
+
+    /**
+     * Create and persist a new session.
+     */
+    createSession(session: Session): Promise<void>;
+
+    /**
+     * Save multiple sessions at once.
+     */
     saveSessions(sessions: SessionCollection): Promise<void>;
+
+    /**
+     * Revoke a session by ID.
+     */
     revokeSession(id: Uuid4): Promise<void>;
+
+    /**
+     * Revoke all sessions for a user.
+     * Returns the number of revoked sessions.
+     */
     revokeAllSessionsForUser(id: Uuid4): Promise<number>;
+
+    /**
+     * Count active sessions for a user.
+     */
     countActiveSessionsForUser(id: Uuid4): Promise<number>;
-    findSessionByToken(id: Uuid4): Promise<Session | null>;
+
+    /**
+     * Find a session by its ID.
+     */
     findSessionById(id: Uuid4): Promise<Session | null>;
+
+    /**
+     * Find all sessions for a user.
+     */
     findAllSessionsForUser(id: Uuid4): Promise<SessionCollection>;
+
+    /**
+     * Find expired sessions across all users.
+     */
     findExpiredSessions(): Promise<SessionCollection>;
+
+    /**
+     * Find inactive sessions across all users.
+     */
     findInactiveSessions(): Promise<SessionCollection>;
+
+    /**
+     * Generate a new access token for a given user ID.
+     */
+    generateAccessToken(userId: Uuid4): string;
+
+    /**
+     * Rotate the refresh token for a session.
+     * Returns the new token string.
+     */
+    rotateRefreshToken(sessionId: Uuid4, role: 'user' | 'admin' | 'moderator'): Promise<string>;
+
+    /**
+     * Increment failed login attempts for a user.
+     */
+    incrementFailedLoginAttempts(userId: Uuid4): Promise<number>;
+
+    /**
+     * Reset failed login attempts after successful login.
+     */
+    resetFailedLoginAttempts(userId: Uuid4): Promise<void>;
 }

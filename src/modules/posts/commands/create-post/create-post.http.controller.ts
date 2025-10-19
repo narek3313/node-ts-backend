@@ -20,7 +20,7 @@ import { IdResponse } from 'src/libs/api/id.response.dto';
  * Validates and wraps incoming data into domain value objects before
  * passing them to the command layer for additional domain-level validation.
  */
-@Controller(routesV1.post.root)
+@Controller(routesV1.version)
 export class CreatePostHttpController {
     constructor(private readonly commandBus: CommandBus) {}
 
@@ -50,7 +50,7 @@ export class CreatePostHttpController {
 
         const result: Result<Uuid4, InvalidPostDataError> = await this.commandBus.execute(command);
 
-        match(result, {
+        return match(result, {
             Ok: (id: Uuid4) => new IdResponse(id),
             Err: (err: Error) => {
                 if (err instanceof InvalidPostDataError) {

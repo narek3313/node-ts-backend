@@ -9,11 +9,21 @@ import { UpdateEmailService } from './commands/update-user/handlers/update-email
 import { UpdateUsernameService } from './commands/update-user/handlers/update-username.service';
 import { UpdatePasswordService } from './commands/update-user/handlers/update-password.service';
 import { UserMapper } from './user.mapper';
+import { UserRepository } from './infrastructure/user.repository';
+import { USER_REPOSITORY } from './user.di-tokens';
+import { PrismaModule } from 'src/db/prisma/prisma.module';
+import { UpdateAvatarService } from './commands/update-user/handlers/update-avatar.service';
+import {
+    GetUserByEmailHandler,
+    GetUserByIdHandler,
+} from './queries/find-users/find-users.query-handler';
+import { FindUsersHttpController } from './queries/find-users/find-users.http.controller';
 
 const httpControllers = [
     CreateUserHttpController,
     UpdateUserHttpController,
     DeleteUserHttpController,
+    FindUsersHttpController,
 ];
 
 const commandHandlers: Provider[] = [
@@ -22,13 +32,18 @@ const commandHandlers: Provider[] = [
     UpdateEmailService,
     UpdateUsernameService,
     UpdatePasswordService,
+    UpdateAvatarService,
 ];
 
+const queryHandlers: Provider[] = [GetUserByIdHandler, GetUserByEmailHandler];
+
+const repositories: Provider[] = [{ provide: USER_REPOSITORY, useClass: UserRepository }];
 const mappers: Provider[] = [UserMapper];
 
 @Module({
-    imports: [CqrsModule],
+    imports: [CqrsModule, PrismaModule],
     controllers: [...httpControllers],
-    providers: [...commandHandlers, ...mappers],
+    providers: [...commandHandlers, ...queryHandlers, ...mappers, ...repositories],
+    exports: [...queryHandlers, USER_REPOSITORY],
 })
 export class UserModule {}

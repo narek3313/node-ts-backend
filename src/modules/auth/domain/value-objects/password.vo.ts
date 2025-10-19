@@ -1,4 +1,4 @@
-import { HASH_REGEX } from 'src/libs/regex';
+import { HASH_REGEX, PASSWORD_REGEX } from 'src/libs/regex';
 import { validateByRegex } from 'src/libs/utils/validate-string';
 
 /*
@@ -11,11 +11,15 @@ export class Password {
     private constructor(private readonly _value: string) {}
 
     static create(value: string) {
-        const normalized = validateByRegex(value, HASH_REGEX, 'password');
+        const normalized = validateByRegex(value, [HASH_REGEX, PASSWORD_REGEX], 'password');
         return new Password(normalized);
     }
 
     get value(): string {
         return this._value;
+    }
+
+    equals(other: Password): boolean {
+        return this._value === other.value;
     }
 }

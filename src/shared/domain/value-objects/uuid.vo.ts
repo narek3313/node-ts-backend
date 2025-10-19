@@ -16,8 +16,9 @@ export class Uuid4 {
         if (_id) {
             const id = validateByRegex(_id, UUID_REGEX, 'uuidv4');
             this._value = id;
+        } else {
+            this._value = randomUUID();
         }
-        this._value = randomUUID();
     }
 
     public static create(): Uuid4 {

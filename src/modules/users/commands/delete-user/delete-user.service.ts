@@ -3,6 +3,8 @@ import { NotFoundException } from 'src/libs/exceptions/exceptions';
 import { Result, Ok, Err } from 'oxide.ts';
 import { UserRepository } from '../../infrastructure/user.repository';
 import { DeleteUserCommand } from './delete-user.command';
+import { USER_REPOSITORY } from '../../user.di-tokens';
+import { Inject } from '@nestjs/common';
 
 /**
  * @commandhandler DeleteUserService
@@ -15,9 +17,9 @@ import { DeleteUserCommand } from './delete-user.command';
 export class DeleteUserService
     implements ICommandHandler<DeleteUserCommand, Result<boolean, NotFoundException>>
 {
-    constructor(private readonly userRepo: UserRepository) {}
+    constructor(@Inject(USER_REPOSITORY) private readonly userRepo: UserRepository) {}
 
-     /**
+    /**
      * @method execute
      * @description Executes the DeleteUserCommand:
      * 1. Attempts to delete the user by ID in the repository.

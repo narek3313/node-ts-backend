@@ -26,7 +26,7 @@ export class Role {
         return other ? this.value === other.value : false;
     }
 
-    public value(): UserRole {
+    get value(): UserRole {
         return this._value;
     }
 

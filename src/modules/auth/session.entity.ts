@@ -7,6 +7,7 @@ import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
 import { UpdatedAt } from 'src/shared/domain/value-objects/updated-at.vo';
 import { RevokedAt } from 'src/shared/domain/value-objects/revoked-at.vo';
 import { ExpiresAt } from 'src/shared/domain/value-objects/expires-at.vo';
+import { JwtToken } from './domain/value-objects/token.vo';
 
 export type CreateSessionProps = {
     id?: Uuid4;
@@ -17,6 +18,18 @@ export type CreateSessionProps = {
     revokedAt?: RevokedAt;
     ipAddress: IpAddress;
     userAgent: UserAgent;
+};
+
+export type SessionPrimitives = {
+    id: string;
+    userId: string;
+    refreshToken: string;
+    createdAt: Date;
+    updatedAt: Date;
+    revokedAt: Date | null;
+    ipAddress: string;
+    userAgent: string;
+    expiresAt: Date;
 };
 
 /*
@@ -85,6 +98,28 @@ export class Session {
         return new Session(props);
     }
 
+    public static createFromRecord(record: SessionPrimitives): Session {
+        const refreshToken = RefreshToken.create({
+            sessionId: Uuid4.from(record.id),
+            token: JwtToken.create(record.refreshToken),
+            createdAt: CreatedAt.from(record.createdAt),
+            revokedAt: record.revokedAt ? RevokedAt.at(record.revokedAt) : RevokedAt.none(),
+        });
+
+        refreshToken.restoreExpiresAt(record.expiresAt);
+
+        return Session.create({
+            id: Uuid4.from(record.id),
+            userId: Uuid4.from(record.userId),
+            refreshToken,
+            createdAt: CreatedAt.from(record.createdAt),
+            updatedAt: UpdatedAt.from(record.updatedAt),
+            revokedAt: record.revokedAt ? RevokedAt.at(record.revokedAt) : RevokedAt.none(),
+            ipAddress: IpAddress.create(record.ipAddress),
+            userAgent: UserAgent.create(record.userAgent),
+        });
+    }
+
     revoke(): void {
         this._refreshToken.revoke();
         this._revokedAt = RevokedAt.now();
@@ -100,6 +135,20 @@ export class Session {
         this._refreshToken = newToken;
 
         this.touch();
+    }
+
+    toObject(): SessionPrimitives {
+        return {
+            id: this._id.value,
+            userId: this._userId.value,
+            refreshToken: this._refreshToken.token.value,
+            createdAt: this._createdAt.value.toDate(),
+            updatedAt: this._updatedAt.value.toDate(),
+            revokedAt: this._revokedAt.valueOrNull?.toDate() ?? null,
+            ipAddress: this._ipAddress.value,
+            userAgent: this._userAgent.value,
+            expiresAt: this._refreshToken.expiresAt.value.toDate(),
+        };
     }
 
     /* private helpers */

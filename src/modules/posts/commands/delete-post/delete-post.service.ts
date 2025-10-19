@@ -3,6 +3,8 @@ import { NotFoundException } from 'src/libs/exceptions/exceptions';
 import { Result, Ok, Err } from 'oxide.ts';
 import { DeletePostCommand } from './delete-post.command';
 import { PostRepository } from '../../infrastructure/post.repository';
+import { POST_REPOSITORY } from '../../post.di-tokens';
+import { Inject } from '@nestjs/common';
 
 /**
  * @commandhandler DeletePostService
@@ -15,7 +17,7 @@ import { PostRepository } from '../../infrastructure/post.repository';
 export class DeletePostService
     implements ICommandHandler<DeletePostCommand, Result<boolean, NotFoundException>>
 {
-    constructor(private readonly postRepo: PostRepository) {}
+    constructor(@Inject(POST_REPOSITORY) private readonly postRepo: PostRepository) {}
 
     /**
      * @method execute

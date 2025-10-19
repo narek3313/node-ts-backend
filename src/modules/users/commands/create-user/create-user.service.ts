@@ -9,6 +9,8 @@ import { Prisma } from '@prisma/client';
 import { UserAuth } from '../../domain/user-auth.entity';
 import { hashPassword } from 'src/libs/utils/hash';
 import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
+import { Inject } from '@nestjs/common';
+import { USER_REPOSITORY } from '../../user.di-tokens';
 
 /**
  * @commandhandler CreateUserService
@@ -21,7 +23,10 @@ import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
 export class CreateUserService
     implements ICommandHandler<CreateUserCommand, Result<Uuid4, UserAlreadyExistsError>>
 {
-    constructor(private readonly userRepo: UserRepository) {}
+    constructor(
+        @Inject(USER_REPOSITORY)
+        private readonly userRepo: UserRepository,
+    ) {}
 
     /**
      * @method execute

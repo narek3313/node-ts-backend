@@ -5,7 +5,7 @@ import { User } from './user.entity';
 import { IdResponse } from 'src/libs/api/id.response.dto';
 import { Username } from 'src/modules/auth/domain/value-objects/username.vo';
 import { MediaURL } from 'src/shared/domain/value-objects/media-url.vo';
-import { UserAuth } from './user-auth.entity';
+import { UserAuth, UserAuthWithRole } from './user-auth.entity';
 
 /**
  * Domain-level contract for User repository implementations.
@@ -15,6 +15,7 @@ import { UserAuth } from './user-auth.entity';
  * must implement this interface and follow its defined behavior.
  */
 export interface UserRepositoryContract {
+    findAuthByEmail(email: Email): Promise<UserAuthWithRole | null>;
     findById(id: Uuid4): Promise<User | null>;
     findAll(offset: number, limit: number): Promise<UserCollection>;
     findByEmail(email: Email): Promise<User | null>;

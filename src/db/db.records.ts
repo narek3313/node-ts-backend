@@ -37,3 +37,13 @@ export type postDbRecord = {
 };
 
 export type postDbRecordArray = postDbRecord[];
+
+export type userAuthDbRecord = {
+    auth: {
+        userId: string;
+        password: string;
+        lastPasswordChange: Date | null;
+        failedLoginAttempts: number;
+    };
+    role: 'user' | 'admin' | 'moderator';
+};

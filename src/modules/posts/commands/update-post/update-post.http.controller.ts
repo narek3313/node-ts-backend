@@ -44,7 +44,7 @@ export class UpdatePostHttpController {
 
         const result: Result<boolean, NotFoundException> = await this.commandBus.execute(command);
 
-        match(result, {
+        return match(result, {
             Ok: () => {},
             Err: (err: Error) => {
                 if (err instanceof NotFoundException) throw new Http404(err);
@@ -64,7 +64,7 @@ export class UpdatePostHttpController {
 
         const result: Result<boolean, NotFoundException> = await this.commandBus.execute(command);
 
-        match(result, {
+        return match(result, {
             Ok: () => {},
             Err: (err: Error) => {
                 if (err instanceof NotFoundException) throw new Http404(err);
@@ -84,7 +84,7 @@ export class UpdatePostHttpController {
 
         const result: Result<boolean, NotFoundException> = await this.commandBus.execute(command);
 
-        match(result, {
+        return match(result, {
             Ok: () => {},
             Err: (err: Error) => {
                 if (err instanceof NotFoundException) throw new Http404(err);
@@ -104,7 +104,7 @@ export class UpdatePostHttpController {
 
         const result: Result<boolean, NotFoundException> = await this.commandBus.execute(command);
 
-        match(result, {
+        return match(result, {
             Ok: () => {},
             Err: (err: Error) => {
                 if (err instanceof NotFoundException) throw new Http404(err);
@@ -134,7 +134,7 @@ export class UpdatePostHttpController {
 
         const result: Result<boolean, NotFoundException> = await this.commandBus.execute(command);
 
-        match(result, {
+        return match(result, {
             Ok: () => {},
             Err: (err: Error) => {
                 if (err instanceof NotFoundException) throw new Http404(err);
@@ -165,7 +165,7 @@ export class UpdatePostHttpController {
             const result: Result<boolean, NotFoundException> =
                 await this.commandBus.execute(command);
 
-            match(result, {
+            return match(result, {
                 Ok: () => {},
                 Err: (err: Error) => {
                     if (err instanceof NotFoundException) throw new Http404(err);
