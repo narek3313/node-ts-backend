@@ -7,7 +7,11 @@ import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
 import { JwtToken } from '../domain/value-objects/token.vo';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshToken } from '../refresh-token.entity';
+import { Injectable } from '@nestjs/common';
+import { UserAgent } from '../domain/value-objects/user-agent.vo';
+import { IpAddress } from '../domain/value-objects/ip-address.vo';
 
+@Injectable()
 export class AuthRepository implements AuthRepositoryContract {
     constructor(
         private readonly prisma: PrismaService,
@@ -79,6 +83,26 @@ export class AuthRepository implements AuthRepositoryContract {
         });
         const sessions = records.map((r) => Session.createFromRecord(r));
         return SessionCollection.create(sessions);
+    }
+
+    async findExistingSession(
+        userAgent: UserAgent,
+        ipAddress: IpAddress,
+        userId: Uuid4,
+    ): Promise<Session | null> {
+        const session = await this.prisma.session.findFirst({
+            where: {
+                userId: userId.value,
+                ipAddress: ipAddress.value,
+                userAgent: userAgent.value,
+            },
+        });
+
+        if (!session) {
+            return null;
+        }
+
+        return Session.createFromRecord(session);
     }
 
     async findExpiredSessions(): Promise<SessionCollection> {

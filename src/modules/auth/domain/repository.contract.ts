@@ -15,7 +15,8 @@ export interface AuthRepositoryContract {
      */
 
     /**
-     * Create and persist a new session.
+     * Create or reuse and persist a new session.
+     *
      */
     createSession(session: Session): Promise<void>;
 

@@ -5,7 +5,7 @@ import { LoginCommand } from './login.command';
 import { LoginRequestDto } from './login.request.dto';
 import { Email } from '../../domain/value-objects/email.vo';
 import { Password } from '../../domain/value-objects/password.vo';
-import { Result } from 'oxide.ts';
+import { Result, match } from 'oxide.ts';
 import { LoginResponse } from './login.response.dto';
 import { InvalidCredentialsError } from '../../auth.errors';
 import { IpAddress } from '../../domain/value-objects/ip-address.vo';
@@ -19,33 +19,37 @@ export class LoginUserHttpController {
     @Post(routesV1.auth.root)
     async login(@Body() body: LoginRequestDto, @Req() req: Request, @Res() res: Response) {
         const command = new LoginCommand({
-            userAgent: UserAgent.create(req.headers['user-agent'] || ''),
-            ipAddress: IpAddress.create(req.ip || ''),
+            userAgent: UserAgent.create(req.headers['user-agent']!),
+            ipAddress: IpAddress.create(req.ip!),
             email: Email.create(body.email),
             password: Password.create(body.password),
         });
 
-        const _result: Result<LoginResponse, InvalidCredentialsError> =
+        const result: Result<LoginResponse, InvalidCredentialsError> =
             await this.commandBus.execute(command);
 
-        try {
-            const result = _result.unwrap();
-            const { accessToken, refreshToken } = result.toObject();
+        return match(result, {
+            Ok: (result) => {
+                const { accessToken, refreshToken } = result.toObject();
 
-            res.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
-                secure: true,
-                sameSite: 'strict',
-                path: '/',
-                maxAge: 7 * 24 * 60 * 60 * 1000,
-            });
+                res.cookie('refreshToken', refreshToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'strict',
+                    path: '/',
+                    maxAge: 7 * 24 * 60 * 60 * 1000,
+                });
 
-            return { accessToken };
-        } catch (err: unknown) {
-            if (err instanceof InvalidCredentialsError) {
-                throw new Http400(err.message);
-            }
-            throw err;
-        }
+                return res.json({ accessToken });
+            },
+
+            Err: (err: Error) => {
+                if (err instanceof InvalidCredentialsError) {
+                    throw new Http400(err.message);
+                }
+
+                throw err;
+            },
+        });
     }
 }

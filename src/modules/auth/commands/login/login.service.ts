@@ -59,9 +59,22 @@ export class LoginUserCommandHandler
             refreshToken,
         });
 
-        await this.authRepo.createSession(session);
+        const existingSession = await this.authRepo.findExistingSession(
+            command.userAgent,
+            command.ipAddress,
+            userAuth.auth.userId,
+        );
 
-        const response = LoginResponse.create(refreshToken, accessToken);
+        const sessionToken =
+            existingSession && !existingSession.expired
+                ? existingSession.refreshToken
+                : refreshToken;
+
+        if (!existingSession || existingSession.expired) {
+            await this.authRepo.createSession(session);
+        }
+
+        const response = LoginResponse.create(sessionToken, accessToken);
 
         return Ok(response);
     }
