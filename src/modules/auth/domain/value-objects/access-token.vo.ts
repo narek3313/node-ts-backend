@@ -1,6 +1,5 @@
 import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
 import { ExpiresAt } from 'src/shared/domain/value-objects/expires-at.vo';
-import { DateTime } from 'src/libs/utils/date-time';
 import { JwtToken } from './token.vo';
 
 export type CreateAccessTokenProps = {

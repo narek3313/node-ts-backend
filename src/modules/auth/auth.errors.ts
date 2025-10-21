@@ -9,3 +9,13 @@ export class InvalidCredentialsError extends ExceptionBase {
         super(InvalidCredentialsError.message, cause, metadata);
     }
 }
+
+export class UnauthorizedError extends ExceptionBase {
+    static readonly message = 'Unauthorized';
+
+    public readonly code = 'AUTH.UNAUTHORIZED';
+
+    constructor(cause?: Error, metadata?: unknown) {
+        super(UnauthorizedError.message, cause, metadata);
+    }
+}

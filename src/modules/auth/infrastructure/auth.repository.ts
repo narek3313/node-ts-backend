@@ -3,13 +3,12 @@ import { AuthRepositoryContract } from '../domain/repository.contract';
 import { Session } from 'src/modules/auth/session.entity';
 import { SessionCollection } from '../domain/collections/session.collection';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
-import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
-import { JwtToken } from '../domain/value-objects/token.vo';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshToken } from '../refresh-token.entity';
 import { Injectable } from '@nestjs/common';
 import { UserAgent } from '../domain/value-objects/user-agent.vo';
 import { IpAddress } from '../domain/value-objects/ip-address.vo';
+import { NotFoundException } from 'src/libs/exceptions/exceptions';
 
 @Injectable()
 export class AuthRepository implements AuthRepositoryContract {
@@ -44,6 +43,7 @@ export class AuthRepository implements AuthRepositoryContract {
     }
 
     async revokeSession(id: Uuid4): Promise<void> {
+        console.log('revoking session');
         await this.prisma.session.update({
             where: { id: id.value },
             data: { revokedAt: new Date() },
@@ -68,9 +68,9 @@ export class AuthRepository implements AuthRepositoryContract {
         });
     }
 
-    async findSessionById(id: Uuid4): Promise<Session | null> {
+    async findSessionById(id: string): Promise<Session | null> {
         const record = await this.prisma.session.findUnique({
-            where: { id: id.value },
+            where: { id: id },
         });
         if (!record) return null;
         return Session.createFromRecord(record);
@@ -95,6 +95,7 @@ export class AuthRepository implements AuthRepositoryContract {
                 userId: userId.value,
                 ipAddress: ipAddress.value,
                 userAgent: userAgent.value,
+                revokedAt: null,
             },
         });
 
@@ -121,48 +122,27 @@ export class AuthRepository implements AuthRepositoryContract {
         return SessionCollection.create(sessions);
     }
 
-    generateAccessToken(userId: Uuid4): string {
-        // Minimal payload; replace/add claims per your JwtPayload contract
-        const payload = { sub: userId.value };
-        return this.jwtService.sign(payload, { expiresIn: '1h' });
-    }
-
-    async rotateRefreshToken(
-        sessionId: Uuid4,
-        role: 'user' | 'admin' | 'moderator',
-    ): Promise<string> {
+    async rotateRefreshToken(sessionId: string, refreshToken: RefreshToken): Promise<void> {
         const record = await this.prisma.session.findUnique({
-            where: { id: sessionId.value },
+            where: { id: sessionId },
         });
 
         if (!record) {
-            throw new Error(`Session not found: ${sessionId.value}`);
+            throw new NotFoundException();
         }
 
-        const payload = { sub: record.userId, role };
-
-        const newJwtToken = JwtToken.createFromPayload(this.jwtService, payload, '7d');
-
-        const newRefreshToken = RefreshToken.create({
-            sessionId: Uuid4.from(sessionId.value),
-            token: newJwtToken,
-            createdAt: CreatedAt.now(),
-        });
-
         await this.prisma.session.update({
-            where: { id: sessionId.value },
+            where: { id: sessionId },
             data: {
-                refreshToken: newRefreshToken.token.value,
-                expiresAt: newRefreshToken.expiresAt.value.toDate
-                    ? newRefreshToken.expiresAt.value.toDate()
-                    : (newRefreshToken.expiresAt.value as unknown as Date),
-                updatedAt: newRefreshToken.createdAt.value.toDate
-                    ? newRefreshToken.createdAt.value.toDate()
-                    : (newRefreshToken.createdAt.value as unknown as Date),
+                refreshToken: refreshToken.token.value,
+                expiresAt: refreshToken.expiresAt.value.toDate
+                    ? refreshToken.expiresAt.value.toDate()
+                    : (refreshToken.expiresAt.value as unknown as Date),
+                updatedAt: refreshToken.createdAt.value.toDate
+                    ? refreshToken.createdAt.value.toDate()
+                    : (refreshToken.createdAt.value as unknown as Date),
             },
         });
-
-        return newRefreshToken.token.value;
     }
 
     async incrementFailedLoginAttempts(userId: Uuid4): Promise<number> {

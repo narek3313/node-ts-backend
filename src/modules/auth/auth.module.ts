@@ -1,25 +1,41 @@
 import { Module, Provider } from '@nestjs/common';
-import { LoginUserHttpController } from './commands/login/login.http.controller';
-import { LoginUserCommandHandler } from './commands/login/login.service';
-import { AUTH_REPOSITORY } from './auth.di-tokens';
-import { AuthRepository } from './infrastructure/auth.repository';
 import { CqrsModule } from '@nestjs/cqrs';
 import { PrismaModule } from 'src/db/prisma/prisma.module';
-import { UserModule } from '../users/user.module';
-import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthRepository } from './infrastructure/auth.repository';
+import { AUTH_REPOSITORY } from './auth.di-tokens';
+import { LoginUserHttpController } from './commands/login/login.http.controller';
+import { LoginUserCommandHandler } from './commands/login/login.service';
+import { JwtAuthGuard } from './jwt/jwt.strategy';
+import { USER_REPOSITORY } from '../users/user.di-tokens';
+import { UserRepository } from '../users/infrastructure/user.repository';
+import { UserMapper } from '../users/user.mapper';
+import { LogoutUserHttpController } from './commands/logout/logout.http.controller';
+import { LogoutUserCommandHandler } from './commands/logout/logout.service';
+import { RefreshSessionCommandHandler } from './commands/refresh/refresh.service';
+import { RefreshTokenHttpController } from './commands/refresh/refresh.http.controller';
 
-const httpControllers = [LoginUserHttpController];
-const commandHandlers: Provider[] = [LoginUserCommandHandler];
-const queryHandlers: Provider[] = [];
-const repositories: Provider[] = [{ provide: AUTH_REPOSITORY, useClass: AuthRepository }];
-const mappers: Provider[] = [];
+const httpControllers = [
+    LoginUserHttpController,
+    LogoutUserHttpController,
+    RefreshTokenHttpController,
+];
+const commandHandlers: Provider[] = [
+    LoginUserCommandHandler,
+    LogoutUserCommandHandler,
+    RefreshSessionCommandHandler,
+];
+const mappers: Provider[] = [UserMapper];
+const repositories: Provider[] = [
+    { provide: USER_REPOSITORY, useClass: UserRepository },
+    { provide: AUTH_REPOSITORY, useClass: AuthRepository },
+];
 
 @Module({
     imports: [
         CqrsModule,
         PrismaModule,
-        UserModule,
         ConfigModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],
@@ -30,7 +46,7 @@ const mappers: Provider[] = [];
         }),
     ],
     controllers: [...httpControllers],
-    providers: [...commandHandlers, ...queryHandlers, ...mappers, ...repositories],
-    exports: [...repositories],
+    providers: [...commandHandlers, ...repositories, ...mappers, JwtAuthGuard],
+    exports: [AUTH_REPOSITORY, JwtModule],
 })
 export class AuthModule {}

@@ -29,20 +29,26 @@ export class LoginUserCommandHandler
         private readonly jwtService: JwtService,
     ) {}
     async execute(command: LoginCommand): Promise<Result<LoginResponse, InvalidCredentialsError>> {
-        const userAuth = await this.userRepo.findAuthByEmail(command.email);
+        const user = await this.userRepo.findAuthByEmail(command.email);
 
-        if (!userAuth) {
+        if (!user) {
             return Err(new InvalidCredentialsError());
         }
 
-        if (!verifyPassword(command.password.value, userAuth.auth.password.value)) {
+        if (!verifyPassword(command.password.value, user.auth.password.value)) {
             return Err(new InvalidCredentialsError());
         }
+
+        const existingSession = await this.authRepo.findExistingSession(
+            command.userAgent,
+            command.ipAddress,
+            user.auth.userId,
+        );
 
         /* creating sessionId here to pass it to refreshToken aswell */
-        const sessionId = Uuid4.create();
+        const sessionId = existingSession ? existingSession.id : Uuid4.create();
 
-        const payload: JwtPayload = { sub: userAuth.auth.userId.value, role: userAuth.role.value };
+        const payload: JwtPayload = { sub: user.auth.userId.value, role: user.role.value };
 
         const _accessToken = JwtToken.createFromPayload(this.jwtService, payload, '1h');
 
@@ -53,17 +59,12 @@ export class LoginUserCommandHandler
         const refreshToken = RefreshToken.create({ token: _refreshToken, sessionId });
 
         const session = Session.create({
-            userId: userAuth.auth.userId,
+            id: sessionId,
+            userId: user.auth.userId,
             userAgent: command.userAgent,
             ipAddress: command.ipAddress,
             refreshToken,
         });
-
-        const existingSession = await this.authRepo.findExistingSession(
-            command.userAgent,
-            command.ipAddress,
-            userAuth.auth.userId,
-        );
 
         const sessionToken =
             existingSession && !existingSession.expired
@@ -74,7 +75,7 @@ export class LoginUserCommandHandler
             await this.authRepo.createSession(session);
         }
 
-        const response = LoginResponse.create(sessionToken, accessToken);
+        const response = LoginResponse.create(sessionToken, accessToken, sessionId);
 
         return Ok(response);
     }

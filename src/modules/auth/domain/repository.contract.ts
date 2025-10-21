@@ -1,6 +1,7 @@
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 import { Session } from '../session.entity';
 import { SessionCollection } from './collections/session.collection';
+import { RefreshToken } from '../refresh-token.entity';
 
 /**
  * Domain-level contract for authentication repository implementations.
@@ -44,7 +45,7 @@ export interface AuthRepositoryContract {
     /**
      * Find a session by its ID.
      */
-    findSessionById(id: Uuid4): Promise<Session | null>;
+    findSessionById(id: string): Promise<Session | null>;
 
     /**
      * Find all sessions for a user.
@@ -62,15 +63,10 @@ export interface AuthRepositoryContract {
     findInactiveSessions(): Promise<SessionCollection>;
 
     /**
-     * Generate a new access token for a given user ID.
-     */
-    generateAccessToken(userId: Uuid4): string;
-
-    /**
      * Rotate the refresh token for a session.
      * Returns the new token string.
      */
-    rotateRefreshToken(sessionId: Uuid4, role: 'user' | 'admin' | 'moderator'): Promise<string>;
+    rotateRefreshToken(sessionId: string, refreshToken: RefreshToken): Promise<void>;
 
     /**
      * Increment failed login attempts for a user.

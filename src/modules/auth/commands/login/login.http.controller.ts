@@ -11,12 +11,15 @@ import { InvalidCredentialsError } from '../../auth.errors';
 import { IpAddress } from '../../domain/value-objects/ip-address.vo';
 import type { Request, Response } from 'express';
 import { UserAgent } from '../../domain/value-objects/user-agent.vo';
+import { Public } from 'src/libs/decorators/public.decorator';
+import { isProd } from 'src/libs/env/env.util';
 
+@Public()
 @Controller(routesV1.version)
 export class LoginUserHttpController {
     constructor(private readonly commandBus: CommandBus) {}
 
-    @Post(routesV1.auth.root)
+    @Post(`${routesV1.auth.root}/login`)
     async login(@Body() body: LoginRequestDto, @Req() req: Request, @Res() res: Response) {
         const command = new LoginCommand({
             userAgent: UserAgent.create(req.headers['user-agent']!),
@@ -30,11 +33,19 @@ export class LoginUserHttpController {
 
         return match(result, {
             Ok: (result) => {
-                const { accessToken, refreshToken } = result.toObject();
+                const { accessToken, refreshToken, sessionId } = result.toObject();
+
+                res.cookie('sessionId', sessionId, {
+                    httpOnly: true,
+                    secure: isProd,
+                    sameSite: 'strict',
+                    path: '/',
+                    maxAge: 7 * 24 * 60 * 60 * 1000,
+                });
 
                 res.cookie('refreshToken', refreshToken, {
                     httpOnly: true,
-                    secure: true,
+                    secure: isProd,
                     sameSite: 'strict',
                     path: '/',
                     maxAge: 7 * 24 * 60 * 60 * 1000,

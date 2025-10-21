@@ -10,6 +10,7 @@ import { Result, match } from 'oxide.ts';
 import { Email } from 'src/modules/auth/domain/value-objects/email.vo';
 import { Username } from 'src/modules/auth/domain/value-objects/username.vo';
 import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
+import { Public } from 'src/libs/decorators/public.decorator';
 
 /**
  * @controller CreateUserHttpController
@@ -17,6 +18,7 @@ import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
  * Handles user creation requests. Uses the CQRS CommandBus
  * to execute the create user command and returns the new user's ID.
  */
+@Public()
 @Controller(routesV1.version)
 export class CreateUserHttpController {
     constructor(private readonly commandBus: CommandBus) {}
