@@ -6,7 +6,17 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
-    const options = new DocumentBuilder().build();
+    const options = new DocumentBuilder()
+        .setTitle('My API')
+        .setDescription('API documentation for My App')
+        .setVersion('1.0')
+        .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'Authorization')
+        .addApiKey({ type: 'apiKey', name: 'refreshToken', in: 'header' }, 'RefreshTokenAuth')
+        .addApiKey({ type: 'apiKey', name: 'sessionId', in: 'header' }, 'SessionIdAuth')
+        .build();
+
+    app.setGlobalPrefix('api/v1');
+
     const document = SwaggerModule.createDocument(app, options);
     SwaggerModule.setup('docs', app, document);
 

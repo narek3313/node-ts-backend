@@ -5,6 +5,7 @@ import {
     Param,
     ParseUUIDPipe,
     NotFoundException as Http404,
+    UseGuards,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { routesV1 } from 'src/configs/app.routes';

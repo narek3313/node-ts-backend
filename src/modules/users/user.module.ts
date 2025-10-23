@@ -15,13 +15,14 @@ import { UpdateUsernameService } from './commands/update-user/handlers/update-us
 import { UpdatePasswordService } from './commands/update-user/handlers/update-password.service';
 import { UpdateAvatarService } from './commands/update-user/handlers/update-avatar.service';
 import { UserMapper } from './user.mapper';
-import { UserRepository } from './infrastructure/user.repository';
+
 import { USER_REPOSITORY } from './user.di-tokens';
 import {
     GetUserByIdHandler,
     GetUserByEmailHandler,
 } from './queries/find-users/find-users.query-handler';
 import { AuthModule } from '../auth/auth.module';
+import { UserRepository } from './infrastructure/user.repository';
 
 const httpControllers = [
     CreateUserHttpController,

@@ -11,6 +11,14 @@ import { Email } from 'src/modules/auth/domain/value-objects/email.vo';
 import { Username } from 'src/modules/auth/domain/value-objects/username.vo';
 import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
 import { Public } from 'src/libs/decorators/public.decorator';
+import {
+    ApiTags,
+    ApiOperation,
+    ApiBody,
+    ApiCreatedResponse,
+    ApiConflictResponse,
+    ApiBadRequestResponse,
+} from '@nestjs/swagger';
 
 /**
  * @controller CreateUserHttpController
@@ -18,8 +26,9 @@ import { Public } from 'src/libs/decorators/public.decorator';
  * Handles user creation requests. Uses the CQRS CommandBus
  * to execute the create user command and returns the new user's ID.
  */
-@Public()
+@ApiTags('Users')
 @Controller(routesV1.version)
+@Public()
 export class CreateUserHttpController {
     constructor(private readonly commandBus: CommandBus) {}
 
@@ -31,6 +40,52 @@ export class CreateUserHttpController {
      * @throws {Http409} When a user with the same email or username already exists.
      */
     @Post(routesV1.user.root)
+    @ApiOperation({
+        summary: 'Create a new user',
+        description:
+            'Registers a new user account by providing a unique email, username, and password.',
+    })
+    @ApiBody({
+        type: CreateUserRequestDto,
+        examples: {
+            example: {
+                summary: 'Sample user registration payload',
+                value: {
+                    email: 'jane.doe@example.com',
+                    username: 'janedoe',
+                    password: 'StrongPass123!',
+                },
+            },
+        },
+    })
+    @ApiCreatedResponse({
+        description: 'User created successfully',
+        type: IdResponse,
+        examples: {
+            example: {
+                summary: 'Successful creation response',
+                value: { id: '3f4b7c92-1a35-4f09-a1de-b4b2b321a999' },
+            },
+        },
+    })
+    @ApiConflictResponse({
+        description: 'User with same email or username already exists',
+        examples: {
+            conflict: {
+                summary: 'Duplicate user error',
+                value: { statusCode: 409, message: 'User with this email already exists' },
+            },
+        },
+    })
+    @ApiBadRequestResponse({
+        description: 'Invalid input or validation failed',
+        examples: {
+            badRequest: {
+                summary: 'Invalid email format',
+                value: { statusCode: 400, message: 'Invalid email address format' },
+            },
+        },
+    })
     async create(@Body() body: CreateUserRequestDto): Promise<IdResponse> {
         const command = new CreateUserCommand({
             /**

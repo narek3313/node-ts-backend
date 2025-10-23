@@ -34,6 +34,7 @@ export class JwtAuthGuard implements CanActivate {
             req.user = { sub: payload.sub, role: payload.role };
             return true;
         } catch (err) {
+            //future logging
             console.error(err);
             if (isPublic) return true;
             return false;

@@ -11,35 +11,50 @@ import { Result, match } from 'oxide.ts';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 import { InvalidPostDataError } from '../../post.errors';
 import { IdResponse } from 'src/libs/api/id.response.dto';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 
 /**
  * @controller CreatePostHttpController
  * @description
- * Handles post creation requests. Uses the CQRS CommandBus
- * to execute the create post command and returns the new post's ID.
- * Validates and wraps incoming data into domain value objects before
- * passing them to the command layer for additional domain-level validation.
+ * Handles post creation requests using CQRS CommandBus.
+ * Validates input and returns the new post ID.
  */
+@ApiTags('Posts')
 @Controller(routesV1.version)
 export class CreatePostHttpController {
     constructor(private readonly commandBus: CommandBus) {}
 
     /**
      * @route POST /posts
-     * @description Creates a new post with title, content, tags, and optional media attachments.
-     * Converts incoming raw data into domain value objects to ensure type safety
-     * and enforce business rules at the domain level.
-     *
-     * @param {CreatePostRequestDto} body - Incoming request body containing post data.
-     * @returns {IdResponse} The ID of the newly created post.
-     *
-     * @throws {Http400} When the post data fails domain validation
-     * or Prisma detects invalid input (e.g. constraint violations).
-     *
+     * @description
+     * Creates a new post with title, content, tags, and optional media.
      */
     @Post(routesV1.post.root)
+    @ApiOperation({
+        summary: 'Create a new post',
+        description:
+            'Creates a new post with title, content, tags, and optional media attachments.',
+    })
+    @ApiBody({ type: CreatePostRequestDto })
+    @ApiResponse({
+        status: 201,
+        description: 'Post created successfully.',
+        type: IdResponse,
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Invalid post data or domain validation failure.',
+        schema: {
+            example: {
+                statusCode: 400,
+                message: 'Invalid title: must be at least 3 characters long',
+                error: 'Bad Request',
+            },
+        },
+    })
     async create(@Body() body: CreatePostRequestDto) {
         const mediaCollection = MediaCollection.createFromArray(body.media);
+
         const command = new CreatePostCommand({
             authorId: Uuid4.create(),
             title: Title.create(body.title),
@@ -54,7 +69,7 @@ export class CreatePostHttpController {
             Ok: (id: Uuid4) => new IdResponse(id),
             Err: (err: Error) => {
                 if (err instanceof InvalidPostDataError) {
-                    throw new Http400(err);
+                    throw new Http400(err.message);
                 }
                 throw err;
             },

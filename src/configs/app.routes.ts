@@ -2,7 +2,9 @@ const usersRoot = 'users';
 const postsRoot = 'posts';
 const authRoot = 'auth';
 
-const v1 = 'v1';
+// Removed the version because now its set in main.ts
+// Will remove this in future
+const v1 = '';
 
 export const routesV1 = {
     version: v1,

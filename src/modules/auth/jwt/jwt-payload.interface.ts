@@ -1,4 +1,6 @@
+import { ROLES_ENUM } from 'src/libs/decorators/role.decorator';
+
 export interface JwtPayload {
     sub: string;
-    role: 'user' | 'admin' | 'moderator';
+    role: (typeof ROLES_ENUM)[keyof typeof ROLES_ENUM];
 }

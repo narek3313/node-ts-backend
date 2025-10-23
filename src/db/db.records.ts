@@ -5,7 +5,6 @@ export type userDbRecord = {
     createdAt: Date;
     updatedAt: Date;
     avatar: string | null;
-    sessions: sessionDbRecord[];
 };
 
 export type sessionDbRecord = {

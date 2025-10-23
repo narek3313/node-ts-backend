@@ -34,7 +34,7 @@ const mappers: Provider[] = [PostMapper];
 const repositories: Provider[] = [{ provide: POST_REPOSITORY, useClass: PostRepository }];
 
 @Module({
-    imports: [CqrsModule, PostModule],
+    imports: [CqrsModule],
     controllers: [...httpControllers],
     providers: [...commandHandlers, ...mappers, ...repositories],
 })
