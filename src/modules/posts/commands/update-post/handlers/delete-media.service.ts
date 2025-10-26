@@ -19,14 +19,12 @@ export class DeletePostMediaService
 
     async execute(command: DeletePostMediaCommand): Promise<Result<boolean, NotFoundException>> {
         try {
-            const post = await this.postRepo.findById(command.postId);
-            if (!post) {
+            const postMedia = await this.postRepo.getMediaById(command.postId);
+            if (!postMedia) {
                 return Err(new NotFoundException('Post not found'));
             }
 
-            post.removeMedia(command.media);
-
-            await this.postRepo.removeMedia(post.id, command.media.id);
+            await this.postRepo.removeMedia(postMedia.id!, command.mediaId);
 
             return Ok(true);
         } catch (err) {

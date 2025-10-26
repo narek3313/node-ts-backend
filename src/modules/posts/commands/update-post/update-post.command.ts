@@ -2,7 +2,6 @@ import { Command, CommandProps } from 'src/libs/ddd/command.base';
 import { Title } from '../../domain/value-objects/title.vo';
 import { Content } from '../../domain/value-objects/content.vo';
 import { PostMedia } from '../../domain/post-media.entity';
-import { MediaCollection } from '../../domain/value-objects/media-collection.vo';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 import { PostTags } from '../../domain/value-objects/post-tags.vo';
 
@@ -30,18 +29,18 @@ export class ChangePostContentCommand extends Command {
 
 export class DeletePostMediaCommand extends Command {
     readonly postId: Uuid4;
-    readonly media: PostMedia;
+    readonly mediaId: Uuid4;
 
     constructor(props: CommandProps<DeletePostMediaCommand>) {
         super(props);
         this.postId = props.postId;
-        this.media = props.media;
+        this.mediaId = props.mediaId;
     }
 }
 
 export class AddPostMediaCommand extends Command {
     readonly postId: Uuid4;
-    readonly media: MediaCollection;
+    readonly media: PostMedia;
 
     constructor(props: CommandProps<AddPostMediaCommand>) {
         super(props);
@@ -61,13 +60,13 @@ export class AddPostTagsCommand extends Command {
     }
 }
 
-export class DeletePostTagsCommand extends Command {
+export class DeletePostTagCommand extends Command {
     readonly postId: Uuid4;
-    readonly tags: PostTags;
+    readonly tag: string;
 
-    constructor(props: CommandProps<DeletePostTagsCommand>) {
+    constructor(props: CommandProps<DeletePostTagCommand>) {
         super(props);
         this.postId = props.postId;
-        this.tags = props.tags;
+        this.tag = props.tag;
     }
 }

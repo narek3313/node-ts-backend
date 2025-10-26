@@ -5,11 +5,11 @@ import { Title } from './value-objects/title.vo';
 import { Content } from './value-objects/content.vo';
 import { PostTags } from './value-objects/post-tags.vo';
 import { PostStatus } from './value-objects/post-status.vo';
-import { MediaCollection } from './value-objects/media-collection.vo';
 import { Counter } from 'src/shared/domain/value-objects/counter.vo';
 import { PostMedia, PostMediaPropsPrimitives } from './post-media.entity';
 import { ArgumentInvalidException } from 'src/libs/exceptions/exceptions';
 import { DateTime } from 'src/libs/utils/date-time';
+import { MediaItem } from './value-objects/media-item.vo';
 
 export type CreatePostProps = {
     id: Uuid4;
@@ -24,7 +24,7 @@ export type CreatePostProps = {
     createdAt?: CreatedAt;
     updatedAt?: UpdatedAt;
     deletedAt?: DateTime;
-    media?: MediaCollection;
+    media: PostMedia;
     likesCount?: Counter;
     commentsCount?: Counter;
     viewsCount?: Counter;
@@ -36,7 +36,7 @@ export type PostPropsPrimitives = {
     title: string;
     content: string;
     tags: string[];
-    media?: PostMediaPropsPrimitives[];
+    media: PostMediaPropsPrimitives;
     status: string;
     createdAt: Date;
     updatedAt: Date;
@@ -117,7 +117,7 @@ export class Post {
     private _status: PostStatus;
     private _createdAt: CreatedAt;
     private _updatedAt: UpdatedAt;
-    private _media: MediaCollection;
+    private _media: PostMedia;
     private _likesCount: Counter;
     private _commentsCount: Counter;
     private _viewsCount: Counter;
@@ -136,7 +136,7 @@ export class Post {
         this._createdAt = props.createdAt ?? CreatedAt.now();
         this._updatedAt = props.updatedAt ?? UpdatedAt.now();
         this._deletedAt = props.deletedAt ?? undefined;
-        this._media = props.media ?? MediaCollection.empty();
+        this._media = props.media;
         this._likesCount = props.likesCount ?? Counter.zero();
         this._commentsCount = props.commentsCount ?? Counter.zero();
         this._viewsCount = props.viewsCount ?? Counter.zero();
@@ -191,17 +191,17 @@ export class Post {
 
     /* Content updates */
 
-    public addMedia(media: PostMedia[]): void {
+    public addMedia(media: MediaItem): void {
         this.ensureNotDeleted('Cannot add media to a deleted post');
 
-        this._media.addMany(media);
+        this._media.addItem(media);
         this.touch();
     }
 
-    public removeMedia(media: PostMedia): void {
+    public removeMedia(mediaItemId: Uuid4): void {
         this.ensureNotDeleted('Cannot remove media from a deleted post');
 
-        this._media.remove(media.id);
+        this._media.removeItem(mediaItemId);
         this.touch();
     }
 
@@ -270,7 +270,7 @@ export class Post {
             title: this._title.value,
             content: this._content.value,
             status: this._status.value,
-            media: this._media.toObjectArray(),
+            media: this._media.toJSON(),
             updatedAt: this._updatedAt.value.toDate(),
             createdAt: this._createdAt.value.toDate(),
             deletedAt: this._deletedAt ? this._deletedAt.toDate() : undefined,
@@ -329,11 +329,7 @@ export class Post {
         return this._deletedAt ?? undefined;
     }
 
-    get mediaCollection(): MediaCollection {
+    get media(): PostMedia {
         return this._media;
-    }
-
-    get mediaArray(): PostMedia[] {
-        return this._media.toArray();
     }
 }

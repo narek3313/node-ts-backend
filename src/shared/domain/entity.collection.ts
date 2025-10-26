@@ -29,6 +29,7 @@ export abstract class EntityCollection<T extends { id: Uuid4 }> {
      */
     protected constructor(initialItems: T[] = []) {
         initialItems.forEach((item) => this.items.set(item.id.value, item));
+        this._totalItems = initialItems.length;
     }
 
     /**
@@ -41,6 +42,7 @@ export abstract class EntityCollection<T extends { id: Uuid4 }> {
             throw new ArgumentOutOfRangeException(`Entity with id ${key} already exists`);
         }
         this.items.set(key, entity);
+        this._totalItems++;
     }
 
     /**
@@ -48,6 +50,7 @@ export abstract class EntityCollection<T extends { id: Uuid4 }> {
      */
     remove(entityId: Uuid4): void {
         this.items.delete(entityId.value);
+        this._totalItems--;
     }
 
     /**
@@ -56,6 +59,7 @@ export abstract class EntityCollection<T extends { id: Uuid4 }> {
      */
     addMany(entities: T[]): void {
         entities.forEach((entity) => this.add(entity));
+        this._totalItems += entities.length;
     }
 
     /**
@@ -63,6 +67,7 @@ export abstract class EntityCollection<T extends { id: Uuid4 }> {
      */
     removeMany(entityIds: Uuid4[]): void {
         entityIds.forEach((id) => this.remove(id));
+        this._totalItems -= entityIds.length;
     }
 
     /**
@@ -86,10 +91,15 @@ export abstract class EntityCollection<T extends { id: Uuid4 }> {
         return Array.from(this.items.values());
     }
 
-    /**
-     * Number of entities in the collection.
-     */
-    get count(): number {
-        return this.items.size;
+    get page(): number {
+        return this._page;
+    }
+
+    get totalItems(): number {
+        return this._totalItems;
+    }
+
+    get limit(): number {
+        return this._limit;
     }
 }

@@ -10,9 +10,13 @@ import { UpdatePostContentService } from './commands/update-post/handlers/update
 import { AddPostMediaService } from './commands/update-post/handlers/add-media.service';
 import { DeletePostMediaService } from './commands/update-post/handlers/delete-media.service';
 import { AddPostTagsService } from './commands/update-post/handlers/add-tags.service';
-import { DeletePostTagsService } from './commands/update-post/handlers/delete-tags.service';
 import { PostRepository } from './infrastructure/post.repository';
 import { POST_REPOSITORY } from './post.di-tokens';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from '../auth/jwt/jwt.strategy';
+import { PrismaModule } from 'src/db/prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module';
+import { DeletePostTagService } from './commands/update-post/handlers/delete-tag.service';
 
 const httpControllers = [
     UpdatePostHttpController,
@@ -27,15 +31,16 @@ const commandHandlers: Provider[] = [
     AddPostMediaService,
     DeletePostMediaService,
     AddPostTagsService,
-    DeletePostTagsService,
+    DeletePostTagService,
 ];
 
 const mappers: Provider[] = [PostMapper];
 const repositories: Provider[] = [{ provide: POST_REPOSITORY, useClass: PostRepository }];
+const guards: Provider[] = [{ provide: APP_GUARD, useClass: JwtAuthGuard }];
 
 @Module({
-    imports: [CqrsModule],
+    imports: [CqrsModule, PrismaModule, AuthModule],
     controllers: [...httpControllers],
-    providers: [...commandHandlers, ...mappers, ...repositories],
+    providers: [...commandHandlers, ...mappers, ...repositories, ...guards],
 })
 export class PostModule {}

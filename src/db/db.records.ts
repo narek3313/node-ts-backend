@@ -1,4 +1,6 @@
-export type userDbRecord = {
+import { MediaType } from 'src/libs/enums/post-media-type';
+
+export type UserDbRecord = {
     id: string;
     username: string;
     email: string;
@@ -7,7 +9,9 @@ export type userDbRecord = {
     avatar: string | null;
 };
 
-export type sessionDbRecord = {
+export type UserDbRecordArray = UserDbRecord[];
+
+export type SessionDbRecord = {
     id: string;
     refreshToken: string;
     createdAt: Date;
@@ -18,9 +22,9 @@ export type sessionDbRecord = {
     revokedAt: Date | null;
 };
 
-export type userDbRecordArray = userDbRecord[];
+export type SserDbRecordArray = UserDbRecord[];
 
-export type postDbRecord = {
+export type PostDbRecord = {
     id: string;
     authorId: string;
     title: string;
@@ -30,14 +34,28 @@ export type postDbRecord = {
     likesCount: number;
     viewsCount: number;
     commentsCount: number;
-    media: object[];
+    media: PostMediaDbRecord;
     createdAt: Date;
     updatedAt: Date;
 };
 
-export type postDbRecordArray = postDbRecord[];
+export type PostMediaItemDbRecord = {
+    id: string;
+    url: string;
+    size: number;
+    type: MediaType;
+    duration?: number;
+};
 
-export type userAuthDbRecord = {
+export type PostMediaDbRecord = {
+    id: string;
+    postId: string;
+    items: PostMediaItemDbRecord[];
+};
+
+export type PostDbRecordArray = PostDbRecord[];
+
+export type UserAuthDbRecord = {
     auth: {
         userId: string;
         password: string;

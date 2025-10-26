@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsUrl, Length, Matches } from 'class-validator';
-import { MEDIA_URL_REGEX } from 'src/libs/regex';
+import { AVATAR_URL_REGEX } from 'src/libs/regex';
 
 export class UpdateAvatarDto {
     @ApiProperty({
@@ -11,7 +11,7 @@ export class UpdateAvatarDto {
     })
     /* reinforcing url validation because isUrl method is not safe (until patched)*/
     @IsUrl()
-    @Matches(MEDIA_URL_REGEX, { message: 'Wrong avatar URL format' })
+    @Matches(AVATAR_URL_REGEX, { message: 'Wrong avatar URL format' })
     @Length(10, 2048)
     readonly avatar: string;
 }

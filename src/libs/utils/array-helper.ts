@@ -50,6 +50,6 @@ export class ArrayHelper {
      */
     static remove(from: string[], i: string[]): string[] {
         const removeSet = new Set(i.map((t) => t.trim().toLowerCase()).filter(Boolean));
-        return from.filter((f) => !removeSet.has(f));
+        return from.filter((f) => !removeSet.has(f.trim().toLowerCase()));
     }
 }

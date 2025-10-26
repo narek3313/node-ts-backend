@@ -1,10 +1,11 @@
+import { Type } from 'class-transformer';
 import {
-    IsArray,
     IsOptional,
     IsString,
     IsUrl,
     IsEnum,
     IsNumber,
+    IsArray,
     ValidateNested,
 } from 'class-validator';
 import { MediaType } from 'src/libs/enums/post-media-type';
@@ -30,8 +31,8 @@ export const MediaItemSchema = z.object({
 
 export const MediaArraySchema = z.array(MediaItemSchema);
 
-export type MediaItem = z.infer<typeof MediaItemSchema>;
-export type MediaArray = z.infer<typeof MediaArraySchema>;
+export type TMediaItem = z.infer<typeof MediaItemSchema>;
+export type TMediaArray = z.infer<typeof MediaArraySchema>;
 
 export class MediaItemDto {
     @IsString()
@@ -49,8 +50,9 @@ export class MediaItemDto {
     duration?: number;
 }
 
-export class UpdateMediaDto {
+export class AddMediaDto {
     @IsArray()
     @ValidateNested({ each: true })
+    @Type(() => MediaItemDto)
     items: MediaItemDto[];
 }

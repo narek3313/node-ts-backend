@@ -7,9 +7,11 @@ export const PASSWORD_REGEX =
 
 export const HASH_REGEX = /^[a-f0-9]{32}\$[a-f0-9]{128}$/i;
 
-/* Should be valid avatar url, extensions are allowed */
-export const MEDIA_URL_REGEX =
-    /^(https?:\/\/)([\w.-]+|\blocalhost\b)(:\d{1,5})?(\/[^\s?#]+?\.(png|jpg|jpeg|webp|gif))(?:\?[^\s#]*)?$/i;
+export const AVATAR_URL_REGEX =
+    /^(https?:\/\/)([\w.-]+|\blocalhost\b)(:\d{1,5})?(\/[^\s?#]+?\.(png|jpg|jpeg|webp))(?:\?[^\s#]*)?$/i;
+
+export const POST_MEDIA_URL_REGEX =
+    /^(https?:\/\/)([\w.-]+|\blocalhost\b)(:\d{1,5})?(\/[^\s?#]+?\.(png|jpg|jpeg|webp|gif|mp4|mov|avi|mkv|mp3|wav|ogg|flac))(?:\?[^\s#]*)?$/i;
 
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

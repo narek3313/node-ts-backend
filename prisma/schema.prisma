@@ -51,32 +51,42 @@ model Session {
 }
 
 model Post {
-  id            String   @id
+  id            String    @id
   authorId      String
-  likesCount    Int      @default(0)
-  viewsCount    Int      @default(0)
-  commentsCount Int      @default(0)
-  status        String   @default("DRAFT")
-  tags          String[] @default([])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  likesCount    Int       @default(0)
+  viewsCount    Int       @default(0)
+  commentsCount Int       @default(0)
+  status        String    @default("DRAFT")
+  tags          String[]  @default([])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 
   title   String
   content String
 
   author User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  media  PostMedia[]
+  media  PostMedia?
 
   @@index([authorId])
 }
 
 model PostMedia {
-  id     String @id
-  postId String
+  id     String @id 
+  postId String @unique
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  items Json
+  items PostMediaItem[]
+}
+
+model PostMediaItem {
+  id          String    @id 
+  url         String
+  size        Int
+  type        String
+  duration    Int?
+  postMediaId String
+  postMedia   PostMedia @relation(fields: [postMediaId], references: [id], onDelete: Cascade)
 }
 
 model Comment {

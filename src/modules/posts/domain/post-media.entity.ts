@@ -1,24 +1,17 @@
-import { MediaType } from 'src/libs/enums/post-media-type';
-import { ArgumentInvalidException } from 'src/libs/exceptions/exceptions';
-import { FileSize } from 'src/shared/domain/value-objects/file-size.vo';
-import { MediaDuration } from 'src/shared/domain/value-objects/media-duration.vo';
-import { MediaURL } from 'src/shared/domain/value-objects/media-url.vo';
+import { PostMediaDbRecord } from 'src/db/db.records';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
+import { MediaItem, MediaItemPrimitives } from './value-objects/media-item.vo';
 
-export type CreatePostMediaProps<T extends MediaType> = {
-    id: Uuid4;
-    url: MediaURL;
-    type: T;
-    size: FileSize;
-    duration: MediaDuration | null;
+export type CreatePostMediaProps = {
+    id?: Uuid4;
+    postId: Uuid4;
+    items: MediaItem[];
 };
 
 export type PostMediaPropsPrimitives = {
-    id: string;
-    url: string;
-    type: MediaType;
-    size: number;
-    duration?: number | null;
+    id?: string;
+    postId: string;
+    items: MediaItemPrimitives[];
 };
 
 /**
@@ -45,140 +38,53 @@ export type PostMediaPropsPrimitives = {
  * - Designed for use within the Post aggregate and related domain collections.
  */
 export class PostMedia {
-    private readonly _id: Uuid4;
-    private readonly _url: MediaURL;
-    private readonly _type: MediaType;
-    private readonly _size: FileSize;
-    private readonly _duration: MediaDuration | null;
+    private readonly _id?: Uuid4;
+    private _items: MediaItem[];
+    private readonly _postId: Uuid4;
 
-    private constructor(
-        id: Uuid4,
-        url: MediaURL,
-        type: MediaType,
-        size: FileSize,
-        duration: MediaDuration | null,
-    ) {
-        this._id = id;
-        this._url = url;
-        this._type = type;
-        this._size = size;
-        this._duration = duration;
+    private constructor(props: CreatePostMediaProps) {
+        this._id = props.id;
+        this._postId = props.postId;
+        this._items = props.items;
     }
 
-    public static createAudio(props: CreatePostMediaProps<MediaType.AUDIO>): PostMedia {
-        const size = FileSize.audio(props.size.value);
-        return new PostMedia(props.id, props.url, MediaType.AUDIO, size, props.duration);
+    public static fromDbRecord(dr: PostMediaDbRecord): PostMedia {
+        console.log(`db record: `, dr);
+        const items: MediaItem[] = dr.items.map((items) => MediaItem.fromPrimitives(items));
+        const id = Uuid4.create();
+        const postId = Uuid4.from(dr.postId);
+        return new PostMedia({ items, id, postId });
     }
 
-    public static createVideo(props: CreatePostMediaProps<MediaType.VIDEO>): PostMedia {
-        const size = FileSize.video(props.size.value);
-        return new PostMedia(props.id, props.url, MediaType.VIDEO, size, props.duration);
+    public static create(props: CreatePostMediaProps) {
+        return new PostMedia(props);
     }
 
-    public static createImage(props: CreatePostMediaProps<MediaType.IMAGE>): PostMedia {
-        const size = FileSize.image(props.size.value);
-        return new PostMedia(props.id, props.url, MediaType.IMAGE, size, null);
+    public addItem(item: MediaItem) {
+        this._items.push(item);
+    }
+
+    public removeItem(id: Uuid4) {
+        this._items = this.items.filter((i: MediaItem) => i.id !== id);
     }
 
     public toJSON(): PostMediaPropsPrimitives {
         return {
-            id: this._id.value,
-            url: this._url.value,
-            type: this._type,
-            size: this._size.value,
-            duration: this.duration ? this._duration!.value : undefined,
+            id: this._id?.value,
+            postId: this._postId.value,
+            items: MediaItem.toPrimitives(this._items),
         };
     }
 
-    /**
-     * Dynamically creates a PostMedia instance from a single primitive input.
-     */
-    public static fromPrimitive(m: PostMediaPropsPrimitives): PostMedia {
-        const id = Uuid4.create();
-        const url = MediaURL.create(m.url);
-        const size = FileSize.fromBytes(m.size);
-        const duration = m.duration != null ? MediaDuration.fromSeconds(m.duration) : null;
-
-        switch (m.type) {
-            case MediaType.AUDIO:
-                return PostMedia.createAudio({ id, url, type: MediaType.AUDIO, size, duration });
-            case MediaType.VIDEO:
-                return PostMedia.createVideo({ id, url, type: MediaType.VIDEO, size, duration });
-            case MediaType.IMAGE:
-                return PostMedia.createImage({
-                    id,
-                    url,
-                    type: MediaType.IMAGE,
-                    size,
-                    duration: null,
-                });
-            default:
-                throw new ArgumentInvalidException(`Unsupported media type: ${m.type}`);
-        }
-    }
-
-    /**
-     * Dynamically creates an array of PostMedia from raw DTO/primitive array
-     */
-    public static fromArray(mediaArray: PostMediaPropsPrimitives[]): PostMedia[] {
-        return (mediaArray ?? []).map((m) => {
-            const id = Uuid4.create();
-            const url = MediaURL.create(m.url);
-            const size = FileSize.fromBytes(m.size);
-            const duration = m.duration != null ? MediaDuration.fromSeconds(m.duration) : null;
-
-            switch (m.type) {
-                case MediaType.AUDIO:
-                    return PostMedia.createAudio({
-                        id,
-                        url,
-                        type: MediaType.AUDIO,
-                        size,
-                        duration,
-                    });
-                case MediaType.VIDEO:
-                    return PostMedia.createVideo({
-                        id,
-                        url,
-                        type: MediaType.VIDEO,
-                        size,
-                        duration,
-                    });
-                case MediaType.IMAGE:
-                    return PostMedia.createImage({
-                        id,
-                        url,
-                        type: MediaType.IMAGE,
-                        size,
-                        duration: null,
-                    });
-                default:
-                    throw new ArgumentInvalidException(`Unsupported media type: ${m.type}`);
-            }
-        });
-    }
-
-    public toString(): string {
-        return `${this._type} -> ${this._url.value}`;
-    }
-
-    get url(): MediaURL {
-        return this._url;
-    }
-
-    get type(): MediaType {
-        return this._type;
-    }
-
-    get size(): FileSize {
-        return this._size;
-    }
-
-    get duration(): MediaDuration | null {
-        return this._duration;
-    }
-
-    get id(): Uuid4 {
+    get id(): Uuid4 | undefined {
         return this._id;
+    }
+
+    get postId(): Uuid4 {
+        return this._postId;
+    }
+
+    get items(): MediaItem[] {
+        return this._items;
     }
 }

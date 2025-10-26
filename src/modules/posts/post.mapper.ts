@@ -6,16 +6,15 @@ import { Content } from './domain/value-objects/content.vo';
 import { PostStatus } from './domain/value-objects/post-status.vo';
 import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
 import { UpdatedAt } from 'src/shared/domain/value-objects/updated-at.vo';
-import { MediaCollection } from './domain/value-objects/media-collection.vo';
-import { postDbRecord, postDbRecordArray } from 'src/db/db.records';
+import { PostDbRecord, PostDbRecordArray } from 'src/db/db.records';
 import { PostCollection } from './domain/collections/posts.collection';
 import { PostTags } from './domain/value-objects/post-tags.vo';
 import { Counter } from 'src/shared/domain/value-objects/counter.vo';
-import { MediaType } from 'src/libs/enums/post-media-type';
+import { PostMedia } from './domain/post-media.entity';
 
 @Injectable()
 export class PostMapper {
-    toEntity(dr: postDbRecord): Post {
+    toEntity(dr: PostDbRecord): Post {
         return Post.create({
             id: Uuid4.from(dr.id),
             authorId: Uuid4.from(dr.authorId),
@@ -26,16 +25,13 @@ export class PostMapper {
             likesCount: Counter.from(dr.likesCount),
             viewsCount: Counter.from(dr.viewsCount),
             commentsCount: Counter.from(dr.commentsCount),
-            media: MediaCollection.createFromArray(
-                (dr.media as { type: MediaType; url: string; duration?: number; size: number }[]) ??
-                    [],
-            ),
             createdAt: CreatedAt.from(dr.createdAt),
             updatedAt: UpdatedAt.from(dr.updatedAt),
+            media: PostMedia.fromDbRecord(dr.media),
         });
     }
 
-    toCollection(dr: postDbRecordArray): PostCollection {
+    toCollection(dr: PostDbRecordArray): PostCollection {
         const col = PostCollection.create();
 
         dr.forEach((r) => {
@@ -50,16 +46,9 @@ export class PostMapper {
                     likesCount: Counter.from(r.likesCount),
                     viewsCount: Counter.from(r.viewsCount),
                     commentsCount: Counter.from(r.commentsCount),
-                    media: MediaCollection.createFromArray(
-                        (r.media as {
-                            type: MediaType;
-                            url: string;
-                            duration?: number;
-                            size: number;
-                        }[]) ?? [],
-                    ),
                     createdAt: CreatedAt.from(r.createdAt),
                     updatedAt: UpdatedAt.from(r.updatedAt),
+                    media: PostMedia.fromDbRecord(r.media),
                 }),
             );
         });

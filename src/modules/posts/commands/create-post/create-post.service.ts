@@ -33,13 +33,8 @@ export class CreatePostService
      * or an error if the post data is invalid.
      */
     async execute(command: CreatePostCommand): Promise<Result<Uuid4, InvalidPostDataError>> {
-        /*
-         * db internally creates a PostMedia table where all the media of the post will go and
-         * we pass the id from here, design might be changed
-         */
-        const postMediaId = Uuid4.create();
         const post = Post.create({
-            id: Uuid4.create(),
+            id: command.id,
             content: command.content,
             authorId: command.authorId,
             title: command.title,
@@ -48,13 +43,13 @@ export class CreatePostService
         });
 
         try {
-            await this.postRepo.create(post, postMediaId);
+            await this.postRepo.create(post);
 
             return Ok(post.id);
         } catch (err: unknown) {
             if (err instanceof Prisma.PrismaClientKnownRequestError) {
                 if (['P2009', 'P2002', 'P2011'].includes(err.code)) {
-                    return Err(new InvalidPostDataError());
+                    return Err(new InvalidPostDataError(err));
                 }
             }
             throw err;

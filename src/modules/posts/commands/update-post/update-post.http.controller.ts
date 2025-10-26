@@ -5,7 +5,8 @@ import {
     Param,
     ParseUUIDPipe,
     NotFoundException as Http404,
-    UseGuards,
+    HttpCode,
+    Delete,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { routesV1 } from 'src/configs/app.routes';
@@ -15,20 +16,20 @@ import {
     ChangePostContentCommand,
     ChangePostTitleCommand,
     DeletePostMediaCommand,
-    DeletePostTagsCommand,
+    DeletePostTagCommand,
 } from './update-post.command';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 import { PostTags } from '../../domain/value-objects/post-tags.vo';
 import { Result, match } from 'oxide.ts';
-import { MediaCollection } from '../../domain/value-objects/media-collection.vo';
 import { PostMedia } from '../../domain/post-media.entity';
 import { NotFoundException } from 'src/libs/exceptions/exceptions';
-import { UpdateTagsDto } from './dtos/update-tags.request.dto';
-import { UpdateMediaDto } from './dtos/update-media.request.dto';
 import { UpdateTitleRequestDto } from './dtos/update-title.request.dto';
 import { Title } from '../../domain/value-objects/title.vo';
 import { UpdateContentDto } from './dtos/update-content.request.dto';
 import { Content } from '../../domain/value-objects/content.vo';
+import { AddTagsDto, RemoveTagsDto } from './dtos/update-tags.request.dto';
+import { AddMediaDto } from './dtos/update-media.request.dto';
+import { MediaItem } from '../../domain/value-objects/media-item.vo';
 
 @Controller(routesV1.version)
 export class UpdatePostHttpController {
@@ -74,9 +75,9 @@ export class UpdatePostHttpController {
         });
     }
 
-    @Patch(`${routesV1.post.root}/:id/tags/add`)
+    @Patch(`${routesV1.post.root}/:id/tags`)
     async addTags(
-        @Body() body: UpdateTagsDto,
+        @Body() body: AddTagsDto,
         @Param('id', new ParseUUIDPipe({ version: '4' })) _id: string,
     ): Promise<void> {
         const postId = Uuid4.from(_id);
@@ -94,14 +95,15 @@ export class UpdatePostHttpController {
         });
     }
 
-    @Patch(`${routesV1.post.root}/:id/tags/remove`)
+    @HttpCode(204)
+    @Delete(`${routesV1.post.root}/:id/tags`)
     async removeTags(
-        @Body() body: UpdateTagsDto,
+        @Body() body: RemoveTagsDto,
         @Param('id', new ParseUUIDPipe({ version: '4' })) _id: string,
     ): Promise<void> {
         const postId = Uuid4.from(_id);
-        const postTags = PostTags.create(body.tags);
-        const command = new DeletePostTagsCommand({ postId, tags: postTags });
+        const tag = body.tag;
+        const command = new DeletePostTagCommand({ postId, tag });
 
         const result: Result<boolean, NotFoundException> = await this.commandBus.execute(command);
 
@@ -114,24 +116,16 @@ export class UpdatePostHttpController {
         });
     }
 
-    @Patch(`${routesV1.post.root}/:id/media/add`)
+    @Patch(`${routesV1.post.root}/:id/media`)
     async addMedia(
-        @Body() body: UpdateMediaDto,
+        @Body() body: AddMediaDto,
         @Param('id', new ParseUUIDPipe({ version: '4' })) _id: string,
     ): Promise<void> {
         const postId = Uuid4.from(_id);
 
-        const primitives = (body.items ?? []).map((m) => ({
-            id: Uuid4.create().value,
-            url: m.url,
-            type: m.type,
-            size: m.size,
-            duration: m.duration ?? undefined,
-        }));
+        const media = PostMedia.create({ postId, items: MediaItem.createArray(body.items as any) });
 
-        const mediaCollection: MediaCollection = MediaCollection.createFromArray(primitives);
-
-        const command = new AddPostMediaCommand({ postId, media: mediaCollection });
+        const command = new AddPostMediaCommand({ postId, media });
 
         const result: Result<boolean, NotFoundException> = await this.commandBus.execute(command);
 
@@ -144,35 +138,25 @@ export class UpdatePostHttpController {
         });
     }
 
-    @Patch(`${routesV1.post.root}/:id/media/remove`)
+    @HttpCode(204)
+    @Delete(`${routesV1.post.root}/:id/media/:mediaId`)
     async removeMedia(
-        @Body() body: UpdateMediaDto,
         @Param('id', new ParseUUIDPipe({ version: '4' })) _id: string,
+        @Param('mediaId', new ParseUUIDPipe({ version: '4' })) _mediaId: string,
     ): Promise<void> {
         const postId = Uuid4.from(_id);
+        const mediaId = Uuid4.from(_mediaId);
 
-        for (const m of body.items ?? []) {
-            const primitive = {
-                id: Uuid4.create().value,
-                url: m.url,
-                type: m.type,
-                size: m.size,
-                duration: m.duration ?? null,
-            };
+        const command = new DeletePostMediaCommand({ postId, mediaId });
 
-            const postMedia: PostMedia = PostMedia.fromPrimitive(primitive);
-            const command = new DeletePostMediaCommand({ postId, media: postMedia });
+        const result: Result<boolean, NotFoundException> = await this.commandBus.execute(command);
 
-            const result: Result<boolean, NotFoundException> =
-                await this.commandBus.execute(command);
-
-            return match(result, {
-                Ok: () => {},
-                Err: (err: Error) => {
-                    if (err instanceof NotFoundException) throw new Http404(err);
-                    throw err;
-                },
-            });
-        }
+        return match(result, {
+            Ok: () => {},
+            Err: (err: Error) => {
+                if (err instanceof NotFoundException) throw new Http404(err);
+                throw err;
+            },
+        });
     }
 }

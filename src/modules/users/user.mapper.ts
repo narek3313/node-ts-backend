@@ -5,7 +5,7 @@ import { MediaURL } from 'src/shared/domain/value-objects/media-url.vo';
 import { UpdatedAt } from 'src/shared/domain/value-objects/updated-at.vo';
 import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
 import { Email } from '../auth/domain/value-objects/email.vo';
-import { userAuthDbRecord, userDbRecord, userDbRecordArray } from 'src/db/db.records';
+import { UserAuthDbRecord, UserDbRecord, UserDbRecordArray } from 'src/db/db.records';
 import { UserCollection } from './domain/collections/users.collection';
 import { Injectable } from '@nestjs/common';
 import { UserAuth, UserAuthWithRole } from './domain/user-auth.entity';
@@ -14,7 +14,7 @@ import { Role } from './domain/value-objects/roles.vo';
 
 @Injectable()
 export class UserMapper {
-    toEntity(dr: userDbRecord): User {
+    toEntity(dr: UserDbRecord): User {
         return User.create({
             id: Uuid4.from(dr.id),
             email: Email.create(dr.email),
@@ -25,7 +25,7 @@ export class UserMapper {
         });
     }
 
-    toAuthEntity(dr: userAuthDbRecord): UserAuthWithRole {
+    toAuthEntity(dr: UserAuthDbRecord): UserAuthWithRole {
         const u = UserAuth.create({
             userId: Uuid4.from(dr.auth.userId),
             password: Password.create(dr.auth.password),
@@ -50,7 +50,7 @@ export class UserMapper {
         return result;
     }
 
-    toCollection(dr: userDbRecordArray): UserCollection {
+    toCollection(dr: UserDbRecordArray): UserCollection {
         const col = UserCollection.create();
 
         dr.forEach((r) => {

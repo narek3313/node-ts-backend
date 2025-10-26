@@ -19,14 +19,12 @@ export class AddPostMediaService
 
     async execute(command: AddPostMediaCommand): Promise<Result<boolean, NotFoundException>> {
         try {
-            const post = await this.postRepo.findById(command.postId);
-            if (!post) {
+            const postMedia = await this.postRepo.getMediaById(command.postId);
+            if (!postMedia) {
                 return Err(new NotFoundException('Post not found'));
             }
 
-            post.addMedia(command.media.toArray());
-
-            await this.postRepo.addMedia(post.id, post.mediaCollection);
+            await this.postRepo.addMedia(postMedia.id!, command.media.items[0]);
 
             return Ok(true);
         } catch (err) {

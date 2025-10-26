@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { ArgumentNotProvidedException } from 'src/libs/exceptions/exceptions';
 import { UUID_REGEX } from 'src/libs/regex';
 import { validateByRegex } from 'src/libs/utils/validate-string';
 
@@ -26,6 +27,7 @@ export class Uuid4 {
     }
 
     public static from(id: string): Uuid4 {
+        if (!id) throw new ArgumentNotProvidedException('id was not provided to Uuid4.from()');
         return new Uuid4(id);
     }
 

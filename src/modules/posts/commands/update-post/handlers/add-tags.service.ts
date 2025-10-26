@@ -20,14 +20,14 @@ export class AddPostTagsService
 
     async execute(command: AddPostTagsCommand): Promise<Result<boolean, NotFoundException>> {
         try {
-            const post = await this.postRepo.findById(command.postId);
-            if (!post) {
+            const _tags = await this.postRepo.getTagsById(command.postId);
+            if (!_tags) {
                 return Err(new NotFoundException('Post not found'));
             }
 
-            post.addTags(command.tags.toArray());
+            const tags = _tags.add(command.tags.toArray());
 
-            await this.postRepo.addTags(post.id, post.tags);
+            await this.postRepo.addTags(command.postId, tags);
 
             return Ok(true);
         } catch (err) {

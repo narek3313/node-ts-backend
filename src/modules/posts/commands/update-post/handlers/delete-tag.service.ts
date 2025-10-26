@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Result, Ok, Err } from 'oxide.ts';
 import { NotFoundException } from 'src/libs/exceptions/exceptions';
 import { PostRepository } from 'src/modules/posts/infrastructure/post.repository';
-import { DeletePostTagsCommand } from '../update-post.command';
+import { DeletePostTagCommand } from '../update-post.command';
 import { POST_REPOSITORY } from 'src/modules/posts/post.di-tokens';
 import { Inject } from '@nestjs/common';
 
@@ -11,22 +11,22 @@ import { Inject } from '@nestjs/common';
  * @description
  * Handles removing tags from a post using the PostTags value object.
  */
-@CommandHandler(DeletePostTagsCommand)
-export class DeletePostTagsService
-    implements ICommandHandler<DeletePostTagsCommand, Result<boolean, NotFoundException>>
+@CommandHandler(DeletePostTagCommand)
+export class DeletePostTagService
+    implements ICommandHandler<DeletePostTagCommand, Result<boolean, NotFoundException>>
 {
     constructor(@Inject(POST_REPOSITORY) private readonly postRepo: PostRepository) {}
 
-    async execute(command: DeletePostTagsCommand): Promise<Result<boolean, NotFoundException>> {
+    async execute(command: DeletePostTagCommand): Promise<Result<boolean, NotFoundException>> {
         try {
-            const post = await this.postRepo.findById(command.postId);
-            if (!post) {
+            const _tags = await this.postRepo.getTagsById(command.postId);
+            if (!_tags) {
                 return Err(new NotFoundException('Post not found'));
             }
 
-            post.removeTags(command.tags.toArray());
+            const tags = _tags.remove([command.tag]);
 
-            await this.postRepo.removeTags(post.id, post.tags);
+            await this.postRepo.removeTag(command.postId, tags);
 
             return Ok(true);
         } catch (err) {

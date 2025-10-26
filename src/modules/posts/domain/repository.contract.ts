@@ -5,8 +5,8 @@ import { PostTags } from './value-objects/post-tags.vo';
 import { Title } from './value-objects/title.vo';
 import { Content } from './value-objects/content.vo';
 import { PostStatus } from './value-objects/post-status.vo';
-import { MediaCollection } from './value-objects/media-collection.vo';
 import { IdResponse } from 'src/libs/api/id.response.dto';
+import { MediaItem } from './value-objects/media-item.vo';
 
 /**
  * Domain-level contract for Posts repository implementations.
@@ -21,8 +21,8 @@ export interface PostRepositoryContract {
     updateContent(id: Uuid4, content: Content): Promise<void>;
     updateStatus(id: Uuid4, status: PostStatus): Promise<void>;
     addTags(id: Uuid4, tags: PostTags): Promise<void>;
-    removeTags(id: Uuid4, tags: PostTags): Promise<void>;
-    addMedia(id: Uuid4, media: MediaCollection): Promise<void>;
+    removeTag(id: Uuid4, tags: PostTags): Promise<void>;
+    addMedia(postMediaId: Uuid4, mediaItem: MediaItem): Promise<void>;
     removeMedia(postId: Uuid4, mediaId: Uuid4): Promise<void>;
     delete(id: Uuid4): Promise<boolean>;
     existsById(postId: Uuid4): Promise<boolean>;

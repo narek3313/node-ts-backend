@@ -1,4 +1,4 @@
-import { ArrayHelper } from "src/libs/utils/array-helper";
+import { ArrayHelper } from 'src/libs/utils/array-helper';
 
 /**
  * Domain value object representing the tags assigned to a Post.
@@ -27,5 +27,9 @@ export class PostTags {
 
     toArray(): string[] {
         return this.val;
+    }
+
+    get length(): number {
+        return this.val.length;
     }
 }

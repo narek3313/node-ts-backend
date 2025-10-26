@@ -10,7 +10,9 @@ import { UnauthorizedError } from '../../auth.errors';
 import { Result, match } from 'oxide.ts';
 import { isProd } from 'src/libs/env/env.util';
 import { ApiTags, ApiOperation, ApiResponse, ApiHeader } from '@nestjs/swagger';
+import { Public } from 'src/libs/decorators/public.decorator';
 
+@Public()
 @ApiTags('Auth')
 @Controller(routesV1.version)
 export class RefreshTokenHttpController {
