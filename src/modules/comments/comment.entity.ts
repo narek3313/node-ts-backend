@@ -3,7 +3,7 @@ import { Counter } from 'src/shared/domain/value-objects/counter.vo';
 import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
 import { UpdatedAt } from 'src/shared/domain/value-objects/updated-at.vo';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
-import { Replies } from './value-objects/replies.vo';
+import { Replies } from './domain/value-objects/replies.vo';
 
 export type CreateCommentProps = {
     postId: Uuid4;
@@ -14,7 +14,19 @@ export type CreateCommentProps = {
     likesCount: Counter;
     content: Content;
     parentId?: Uuid4;
-    replies: Replies;
+    replies: string[];
+};
+
+export type CommentPropsPrimitives = {
+    postId: string;
+    id: string;
+    authorId: string;
+    parentId?: string;
+    createdAt: Date;
+    updatedAt: Date;
+    likesCount: number;
+    content: string;
+    replies: string[];
 };
 
 /**
@@ -30,13 +42,13 @@ export type CreateCommentProps = {
 export class Comment {
     private _postId: Uuid4;
     private _id: Uuid4;
+    private _authorId: Uuid4;
+    private _parentId?: Uuid4;
     private _createdAt: CreatedAt;
     private _updatedAt: UpdatedAt;
-    private _authorId: Uuid4;
     private _likesCount: Counter;
     private _content: Content;
-    private _parentId?: Uuid4;
-    private _replies: Replies;
+    private _replies: string[];
 
     private constructor(props: CreateCommentProps) {
         this._postId = props.postId;
@@ -47,7 +59,7 @@ export class Comment {
         this._likesCount = props.likesCount ?? Counter.zero();
         this._content = props.content;
         this._parentId = props.parentId;
-        this._replies = Replies.empty();
+        this._replies = props.replies ?? [];
     }
 
     /**
@@ -55,6 +67,20 @@ export class Comment {
      */
     public static create(props: CreateCommentProps): Comment {
         return new Comment(props);
+    }
+
+    public toObject(): CommentPropsPrimitives {
+        return {
+            postId: this._postId.value,
+            id: this._id.value,
+            authorId: this._authorId.value,
+            parentId: this._parentId?.value ?? undefined,
+            createdAt: this._createdAt.value.toDate(),
+            updatedAt: this._updatedAt.value.toDate(),
+            likesCount: this._likesCount.count,
+            content: this._content.value,
+            replies: this._replies,
+        };
     }
 
     /** Increments the comment's like counter. */
@@ -78,13 +104,13 @@ export class Comment {
     /* replies*/
 
     /** Adds a reply to this comment. */
-    public addReply(reply: Comment): void {
-        this._replies.add(reply);
+    public addReply(reply: Uuid4): void {
+        this._replies.push(reply);
     }
 
     /** Removes a reply from this comment by its ID. */
     public removeReply(replyId: Uuid4): void {
-        this._replies.remove(replyId);
+        this._replies = this._replies.filter((c) => c !== replyId);
     }
 
     /* private helpers*/

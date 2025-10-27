@@ -49,9 +49,8 @@ export class PostMedia {
     }
 
     public static fromDbRecord(dr: PostMediaDbRecord): PostMedia {
-        console.log(`db record: `, dr);
         const items: MediaItem[] = dr.items.map((items) => MediaItem.fromPrimitives(items));
-        const id = Uuid4.create();
+        const id = Uuid4.from(dr.id);
         const postId = Uuid4.from(dr.postId);
         return new PostMedia({ items, id, postId });
     }

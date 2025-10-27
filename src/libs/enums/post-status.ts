@@ -1,6 +1,6 @@
 export enum PostStatusEnum {
-    Draft = 'draft',
-    Published = 'published',
-    Archived = 'archived',
-    Deleted = 'deleted',
+    Draft = 'Draft',
+    Published = 'Published',
+    Archived = 'Archived',
+    Deleted = 'Deleted',
 }

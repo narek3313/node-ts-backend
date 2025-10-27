@@ -4,6 +4,7 @@ import {
     NotFoundException as Http404,
     ParseUUIDPipe,
     Delete,
+    HttpCode,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { routesV1 } from 'src/configs/app.routes';
@@ -28,6 +29,7 @@ export class DeletePostHttpController {
      * @description Deletes a post by ID.
      * @throws {Http404} When the post is not found.
      */
+    @HttpCode(204)
     @Delete(routesV1.post.delete)
     async deletePost(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string): Promise<void> {
         const command = new DeletePostCommand({ postId: Uuid4.from(id) });

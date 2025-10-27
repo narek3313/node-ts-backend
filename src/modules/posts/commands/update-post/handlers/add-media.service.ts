@@ -5,6 +5,7 @@ import { PostRepository } from 'src/modules/posts/infrastructure/post.repository
 import { AddPostMediaCommand } from '../update-post.command';
 import { POST_REPOSITORY } from 'src/modules/posts/post.di-tokens';
 import { Inject } from '@nestjs/common';
+import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 
 /**
  * @commandhandler AddPostMediaService
@@ -13,20 +14,20 @@ import { Inject } from '@nestjs/common';
  */
 @CommandHandler(AddPostMediaCommand)
 export class AddPostMediaService
-    implements ICommandHandler<AddPostMediaCommand, Result<boolean, NotFoundException>>
+    implements ICommandHandler<AddPostMediaCommand, Result<Uuid4, NotFoundException>>
 {
     constructor(@Inject(POST_REPOSITORY) private readonly postRepo: PostRepository) {}
 
-    async execute(command: AddPostMediaCommand): Promise<Result<boolean, NotFoundException>> {
+    async execute(command: AddPostMediaCommand): Promise<Result<Uuid4, NotFoundException>> {
         try {
             const postMedia = await this.postRepo.getMediaById(command.postId);
             if (!postMedia) {
                 return Err(new NotFoundException('Post not found'));
             }
 
-            await this.postRepo.addMedia(postMedia.id!, command.media.items[0]);
+            const mediaItemId = await this.postRepo.addMedia(postMedia.id!, command.media.items[0]);
 
-            return Ok(true);
+            return Ok(mediaItemId);
         } catch (err) {
             if (err instanceof NotFoundException) {
                 return Err(err);

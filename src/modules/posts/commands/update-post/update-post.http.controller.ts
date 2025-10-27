@@ -13,10 +13,12 @@ import { routesV1 } from 'src/configs/app.routes';
 import {
     AddPostMediaCommand,
     AddPostTagsCommand,
+    ArchivePostCommand,
     ChangePostContentCommand,
     ChangePostTitleCommand,
     DeletePostMediaCommand,
     DeletePostTagCommand,
+    PublishPostCommand,
 } from './update-post.command';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 import { PostTags } from '../../domain/value-objects/post-tags.vo';
@@ -30,6 +32,7 @@ import { Content } from '../../domain/value-objects/content.vo';
 import { AddTagsDto, RemoveTagsDto } from './dtos/update-tags.request.dto';
 import { AddMediaDto } from './dtos/update-media.request.dto';
 import { MediaItem } from '../../domain/value-objects/media-item.vo';
+import { IdResponse } from 'src/libs/api/id.response.dto';
 
 @Controller(routesV1.version)
 export class UpdatePostHttpController {
@@ -70,6 +73,36 @@ export class UpdatePostHttpController {
             Ok: () => {},
             Err: (err: Error) => {
                 if (err instanceof NotFoundException) throw new Http404(err);
+                throw err;
+            },
+        });
+    }
+
+    @Patch(`${routesV1.post.root}/:id/publish`)
+    async publish(@Param('id', new ParseUUIDPipe({ version: '4' })) _id: string): Promise<void> {
+        const postId = Uuid4.from(_id);
+        const command = new PublishPostCommand({ postId });
+        const result: Result<boolean, NotFoundException> = await this.commandBus.execute(command);
+
+        return match(result, {
+            Ok: () => {},
+            Err: (err: Error) => {
+                if (err instanceof NotFoundException) throw new Http404(err.message);
+                throw err;
+            },
+        });
+    }
+
+    @Patch(`${routesV1.post.root}/:id/archive`)
+    async archive(@Param('id', new ParseUUIDPipe({ version: '4' })) _id: string): Promise<void> {
+        const postId = Uuid4.from(_id);
+        const command = new ArchivePostCommand({ postId });
+        const result: Result<boolean, NotFoundException> = await this.commandBus.execute(command);
+
+        return match(result, {
+            Ok: () => {},
+            Err: (err: Error) => {
+                if (err instanceof NotFoundException) throw new Http404(err.message);
                 throw err;
             },
         });
@@ -120,17 +153,19 @@ export class UpdatePostHttpController {
     async addMedia(
         @Body() body: AddMediaDto,
         @Param('id', new ParseUUIDPipe({ version: '4' })) _id: string,
-    ): Promise<void> {
+    ): Promise<IdResponse> {
         const postId = Uuid4.from(_id);
 
         const media = PostMedia.create({ postId, items: MediaItem.createArray(body.items as any) });
 
         const command = new AddPostMediaCommand({ postId, media });
 
-        const result: Result<boolean, NotFoundException> = await this.commandBus.execute(command);
+        const result: Result<Uuid4, NotFoundException> = await this.commandBus.execute(command);
 
         return match(result, {
-            Ok: () => {},
+            Ok: (id: Uuid4) => {
+                return new IdResponse(id);
+            },
             Err: (err: Error) => {
                 if (err instanceof NotFoundException) throw new Http404(err);
                 throw err;
@@ -139,15 +174,15 @@ export class UpdatePostHttpController {
     }
 
     @HttpCode(204)
-    @Delete(`${routesV1.post.root}/:id/media/:mediaId`)
+    @Delete(`${routesV1.post.root}/:id/media/:mediaItemId`)
     async removeMedia(
         @Param('id', new ParseUUIDPipe({ version: '4' })) _id: string,
-        @Param('mediaId', new ParseUUIDPipe({ version: '4' })) _mediaId: string,
+        @Param('mediaItemId', new ParseUUIDPipe({ version: '4' })) _mediaItemId: string,
     ): Promise<void> {
         const postId = Uuid4.from(_id);
-        const mediaId = Uuid4.from(_mediaId);
+        const mediaItemId = Uuid4.from(_mediaItemId);
 
-        const command = new DeletePostMediaCommand({ postId, mediaId });
+        const command = new DeletePostMediaCommand({ postId, mediaItemId });
 
         const result: Result<boolean, NotFoundException> = await this.commandBus.execute(command);
 

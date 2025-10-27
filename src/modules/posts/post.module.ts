@@ -17,6 +17,9 @@ import { JwtAuthGuard } from '../auth/jwt/jwt.strategy';
 import { PrismaModule } from 'src/db/prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { DeletePostTagService } from './commands/update-post/handlers/delete-tag.service';
+import { DeletePostService } from './commands/delete-post/delete-post.service';
+import { PublisPostService } from './commands/update-post/handlers/publish-post.service';
+import { ArchivePostService } from './commands/update-post/handlers/archive-post.service';
 
 const httpControllers = [
     UpdatePostHttpController,
@@ -25,7 +28,10 @@ const httpControllers = [
 ];
 
 const commandHandlers: Provider[] = [
+    PublisPostService,
+    ArchivePostService,
     CreatePostService,
+    DeletePostService,
     UpdatePostTitleService,
     UpdatePostContentService,
     AddPostMediaService,

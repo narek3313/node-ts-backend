@@ -1,6 +1,6 @@
 import { EntityCollection } from 'src/shared/domain/entity.collection';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
-import { Comment } from '../comment.entity';
+import { Comment } from '../../comment.entity';
 
 /**
  * Domain collection representing all replies to a single Comment.

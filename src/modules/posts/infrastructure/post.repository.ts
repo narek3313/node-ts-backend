@@ -6,13 +6,13 @@ import { IdResponse } from 'src/libs/api/id.response.dto';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 import { Title } from '../domain/value-objects/title.vo';
 import { Content } from '../domain/value-objects/content.vo';
-import { PostStatus } from '../domain/value-objects/post-status.vo';
 import { PostMapper } from '../post.mapper';
 import { PostCollection } from '../domain/collections/posts.collection';
 import { PostTags } from '../domain/value-objects/post-tags.vo';
 import { NotFoundException } from 'src/libs/exceptions/exceptions';
 import { PostMedia } from 'src/modules/posts/domain/post-media.entity';
 import { MediaItem, MediaItemPrimitives } from '../domain/value-objects/media-item.vo';
+import { PostStatusEnum } from '@prisma/client';
 
 @Injectable()
 export class PostRepository implements PostRepositoryContract {
@@ -26,6 +26,7 @@ export class PostRepository implements PostRepositoryContract {
         const mediaItems = media.items;
 
         await this.prisma.post.create({
+            //@ts-expect-error enum error
             data: {
                 ...postData,
                 media: {
@@ -55,7 +56,6 @@ export class PostRepository implements PostRepositoryContract {
         postMediaId: Uuid4,
         option: 'asPrimitives' | 'asDomain' = 'asDomain',
     ): Promise<MediaItem[] | MediaItemPrimitives[] | []> {
-        console.log(`postmediaid: `, postMediaId);
         const items = await this.prisma.postMediaItem.findMany({
             where: {
                 postMediaId: postMediaId.value,
@@ -95,45 +95,64 @@ export class PostRepository implements PostRepositoryContract {
         });
     }
 
-    async updateStatus(id: Uuid4, status: PostStatus): Promise<void> {
-        await this.prisma.post.update({
-            where: { id: id.value },
-            data: { status: status.value },
-        });
-    }
-
-    async addMedia(postMediaId: Uuid4, _mediaItem: MediaItem): Promise<void> {
-        const items = (await this.getMediaItems(
-            postMediaId,
-            'asPrimitives',
-        )) as MediaItemPrimitives[];
-
+    async addMedia(postMediaId: Uuid4, _mediaItem: MediaItem): Promise<Uuid4> {
         const mediaItem = _mediaItem.toJSON();
-        console.log(`item to add: `, _mediaItem);
-        console.log(`items of the post: `, items);
-        const updatedItems = [...items, mediaItem] as any;
         await this.prisma.postMedia.update({
             where: { id: postMediaId.value },
             data: {
-                items: updatedItems,
+                items: {
+                    create: mediaItem,
+                },
             },
+        });
+
+        return Uuid4.from(mediaItem.id);
+    }
+
+    async removeMedia(postId: Uuid4, itemId: Uuid4): Promise<void> {
+        await this.prisma.postMediaItem.delete({
+            where: { id: itemId.value, postMedia: { postId: postId.value } },
         });
     }
 
-    async removeMedia(postMediaId: Uuid4, itemId: Uuid4): Promise<void> {
-        const items = (await this.getMediaItems(
-            postMediaId,
-            'asPrimitives',
-        )) as MediaItemPrimitives[];
+    async archive(id: Uuid4): Promise<boolean> {
+        if (await this.isDeleted(id.value)) {
+            return false;
+        }
 
-        const updatedItems = items.filter((i: MediaItemPrimitives) => i.id !== itemId.value) as any;
+        try {
+            await this.prisma.post.update({
+                where: { id: id.value },
+                data: {
+                    status: PostStatusEnum.Archived,
+                },
+            });
+            return true;
+        } catch (err) {
+            //future logging
+            console.error(err);
+            return false;
+        }
+    }
 
-        await this.prisma.postMedia.update({
-            where: { id: postMediaId.value },
-            data: {
-                items: updatedItems,
-            },
-        });
+    async publish(id: Uuid4): Promise<boolean> {
+        if (await this.isDeleted(id.value)) {
+            return false;
+        }
+
+        try {
+            await this.prisma.post.update({
+                where: { id: id.value },
+                data: {
+                    status: PostStatusEnum.Published,
+                },
+            });
+            return true;
+        } catch (err) {
+            //future logging
+            console.error(err);
+            return false;
+        }
     }
 
     async delete(id: Uuid4): Promise<boolean> {
@@ -141,7 +160,7 @@ export class PostRepository implements PostRepositoryContract {
             await this.prisma.post.update({
                 where: { id: id.value },
                 data: {
-                    status: 'DELETED',
+                    status: PostStatusEnum.Deleted,
                     deletedAt: new Date(),
                 },
             });
@@ -152,6 +171,19 @@ export class PostRepository implements PostRepositoryContract {
             console.error(err);
             return false;
         }
+    }
+
+    async isDraft(postId: string) {
+        return (await this.getStatus(postId)) === PostStatusEnum.Draft;
+    }
+    async isPublished(postId: string) {
+        return (await this.getStatus(postId)) === PostStatusEnum.Published;
+    }
+    async isArchived(postId: string) {
+        return (await this.getStatus(postId)) === PostStatusEnum.Archived;
+    }
+    async isDeleted(postId: string) {
+        return (await this.getStatus(postId)) === PostStatusEnum.Deleted;
     }
 
     async existsById(postId: Uuid4): Promise<boolean> {
@@ -187,9 +219,8 @@ export class PostRepository implements PostRepositoryContract {
     async getMediaById(postId: Uuid4): Promise<PostMedia | null> {
         const postMedia = await this.prisma.postMedia.findFirst({
             where: { postId: postId.value },
-            select: { items: true, postId: true },
+            select: { items: true, postId: true, id: true },
         });
-        console.log(`post media from db: `, postMedia);
 
         if (!postMedia) {
             return null;
@@ -250,5 +281,17 @@ export class PostRepository implements PostRepositoryContract {
             where: { id: id.value },
             data: { tags: tags.toArray() },
         });
+    }
+
+    private async getStatus(postId: string): Promise<PostStatusEnum> {
+        const post = await this.prisma.post.findUnique({
+            where: { id: postId },
+            select: { status: true },
+        });
+
+        if (!post) {
+            return PostStatusEnum.Deleted;
+        }
+        return post.status;
     }
 }

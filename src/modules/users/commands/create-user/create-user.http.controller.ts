@@ -86,6 +86,7 @@ export class CreateUserHttpController {
             },
         },
     })
+    @Post(routesV1.user.root)
     async create(@Body() body: CreateUserRequestDto): Promise<IdResponse> {
         const command = new CreateUserCommand({
             /**

@@ -29,12 +29,12 @@ export class ChangePostContentCommand extends Command {
 
 export class DeletePostMediaCommand extends Command {
     readonly postId: Uuid4;
-    readonly mediaId: Uuid4;
+    readonly mediaItemId: Uuid4;
 
     constructor(props: CommandProps<DeletePostMediaCommand>) {
         super(props);
         this.postId = props.postId;
-        this.mediaId = props.mediaId;
+        this.mediaItemId = props.mediaItemId;
     }
 }
 
@@ -57,6 +57,24 @@ export class AddPostTagsCommand extends Command {
         super(props);
         this.postId = props.postId;
         this.tags = props.tags;
+    }
+}
+
+export class PublishPostCommand extends Command {
+    readonly postId: Uuid4;
+
+    constructor(props: CommandProps<PublishPostCommand>) {
+        super(props);
+        this.postId = props.postId;
+    }
+}
+
+export class ArchivePostCommand extends Command {
+    readonly postId: Uuid4;
+
+    constructor(props: CommandProps<ArchivePostCommand>) {
+        super(props);
+        this.postId = props.postId;
     }
 }
 
