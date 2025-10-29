@@ -32,7 +32,6 @@ export class UserMapper {
             lastPasswordChange: dr.auth.lastPasswordChange
                 ? UpdatedAt.from(dr.auth.lastPasswordChange)
                 : undefined,
-            failedLoginAttempts: dr.auth.failedLoginAttempts,
         });
 
         const role = Role.create(dr.role);
@@ -42,7 +41,6 @@ export class UserMapper {
                 userId: u.userId,
                 password: u.password,
                 lastPasswordChange: u.lastPasswordChange,
-                failedLoginAttempts: u.failedLoginAttempts,
             },
             role,
         };

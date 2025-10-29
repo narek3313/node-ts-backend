@@ -20,11 +20,21 @@ import { DeletePostTagService } from './commands/update-post/handlers/delete-tag
 import { DeletePostService } from './commands/delete-post/delete-post.service';
 import { PublisPostService } from './commands/update-post/handlers/publish-post.service';
 import { ArchivePostService } from './commands/update-post/handlers/archive-post.service';
+import { FindPostsHttpController } from './queries/find-posts/find-posts.http.controller';
+import {
+    GetPostByIdHandler,
+    GetPostsByUserHandler,
+} from './queries/find-posts/find-post.query-handler';
+import { COMMENT_REPOSITORY } from '../comments/comments.di-tokens';
+import { CommentRepository } from '../comments/infrastructure/comment.repository';
+import { CommentModule } from '../comments/comment.module';
+import { CommentMapper } from '../comments/comment.mapper';
 
 const httpControllers = [
     UpdatePostHttpController,
     DeletePostHttpController,
     CreatePostHttpController,
+    FindPostsHttpController,
 ];
 
 const commandHandlers: Provider[] = [
@@ -40,13 +50,18 @@ const commandHandlers: Provider[] = [
     DeletePostTagService,
 ];
 
-const mappers: Provider[] = [PostMapper];
-const repositories: Provider[] = [{ provide: POST_REPOSITORY, useClass: PostRepository }];
+const querieHandlers: Provider[] = [GetPostByIdHandler, GetPostsByUserHandler];
+
+const mappers: Provider[] = [PostMapper, CommentMapper];
+const repositories: Provider[] = [
+    { provide: COMMENT_REPOSITORY, useClass: CommentRepository },
+    { provide: POST_REPOSITORY, useClass: PostRepository },
+];
 const guards: Provider[] = [{ provide: APP_GUARD, useClass: JwtAuthGuard }];
 
 @Module({
-    imports: [CqrsModule, PrismaModule, AuthModule],
+    imports: [CqrsModule, PrismaModule, AuthModule, CommentModule],
     controllers: [...httpControllers],
-    providers: [...commandHandlers, ...mappers, ...repositories, ...guards],
+    providers: [...commandHandlers, ...querieHandlers, ...mappers, ...repositories, ...guards],
 })
 export class PostModule {}

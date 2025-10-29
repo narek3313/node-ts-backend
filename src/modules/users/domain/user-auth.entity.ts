@@ -7,7 +7,6 @@ export type CreateUserAuthProps = {
     userId: Uuid4;
     password: Password;
     lastPasswordChange?: UpdatedAt;
-    failedLoginAttempts?: number;
 };
 
 /*
@@ -17,7 +16,6 @@ export type CreateUserAuthProps = {
 export type UserAuthPrimitives = {
     password: string;
     lastPasswordChange?: Date;
-    failedLoginAttempts?: number;
 };
 
 /* Used inside login service to create payload */
@@ -26,7 +24,6 @@ export type UserAuthWithRole = {
         userId: Uuid4;
         password: Password;
         lastPasswordChange: UpdatedAt | undefined;
-        failedLoginAttempts: number;
     };
     role: Role;
 };
@@ -64,7 +61,6 @@ export class UserAuth {
         this._userId = props.userId;
         this._password = props.password;
         this._lastPasswordChange = props.lastPasswordChange;
-        this._failedLoginAttempts = props.failedLoginAttempts ?? 0;
     }
 
     static create(props: CreateUserAuthProps): UserAuth {
@@ -77,21 +73,10 @@ export class UserAuth {
         return this;
     }
 
-    incrementFailedLogin(): this {
-        this._failedLoginAttempts += 1;
-        return this;
-    }
-
-    resetFailedLogins(): this {
-        this._failedLoginAttempts = 0;
-        return this;
-    }
-
     toObject(): UserAuthPrimitives {
         return {
             password: this._password.value,
             lastPasswordChange: this._lastPasswordChange?.value.toDate(),
-            failedLoginAttempts: this._failedLoginAttempts,
         };
     }
 

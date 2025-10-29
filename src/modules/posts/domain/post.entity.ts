@@ -4,12 +4,11 @@ import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 import { Title } from './value-objects/title.vo';
 import { Content } from './value-objects/content.vo';
 import { PostTags } from './value-objects/post-tags.vo';
-import { PostStatus } from './value-objects/post-status.vo';
-import { Counter } from 'src/shared/domain/value-objects/counter.vo';
 import { PostMedia, PostMediaPropsPrimitives } from './post-media.entity';
 import { ArgumentInvalidException } from 'src/libs/exceptions/exceptions';
 import { DateTime } from 'src/libs/utils/date-time';
 import { MediaItem } from './value-objects/media-item.vo';
+import { PostStatusEnum } from '@prisma/client';
 
 export type CreatePostProps = {
     id: Uuid4;
@@ -17,17 +16,15 @@ export type CreatePostProps = {
     title: Title;
     content: Content;
     tags?: PostTags;
-    // Status is not required because Post entity uses createDraft
-    // factory and ensures all posts created are with draft status
-    // Might be changed in the future
-    status?: PostStatus;
+    comments?: Set<string>;
+    status?: PostStatusEnum;
     createdAt?: CreatedAt;
     updatedAt?: UpdatedAt;
     deletedAt?: DateTime;
     media: PostMedia;
-    likesCount?: Counter;
-    commentsCount?: Counter;
-    viewsCount?: Counter;
+    likesCount?: number;
+    commentsCount?: number;
+    viewsCount?: number;
 };
 
 export type PostPropsPrimitives = {
@@ -36,6 +33,7 @@ export type PostPropsPrimitives = {
     title: string;
     content: string;
     tags: string[];
+    comments: Set<string>;
     media: PostMediaPropsPrimitives;
     status: string;
     createdAt: Date;
@@ -114,14 +112,15 @@ export class Post {
     private _title: Title;
     private _content: Content;
     private _tags: PostTags;
-    private _status: PostStatus;
+    private _status: PostStatusEnum;
     private _createdAt: CreatedAt;
     private _updatedAt: UpdatedAt;
     private _media: PostMedia;
-    private _likesCount: Counter;
-    private _commentsCount: Counter;
-    private _viewsCount: Counter;
+    private _likesCount: number;
+    private _commentsCount: number;
+    private _viewsCount: number;
     private _deletedAt?: DateTime;
+    private _comments: Set<string>;
 
     /* Posts are always created with Draft status
      * Might be changed in the future
@@ -132,14 +131,15 @@ export class Post {
         this._title = props.title;
         this._content = props.content;
         this._tags = props.tags ?? PostTags.empty();
-        this._status = props.status ?? PostStatus.draft();
+        this._status = props.status ?? PostStatusEnum.Draft;
         this._createdAt = props.createdAt ?? CreatedAt.now();
         this._updatedAt = props.updatedAt ?? UpdatedAt.now();
         this._deletedAt = props.deletedAt ?? undefined;
         this._media = props.media;
-        this._likesCount = props.likesCount ?? Counter.zero();
-        this._commentsCount = props.commentsCount ?? Counter.zero();
-        this._viewsCount = props.viewsCount ?? Counter.zero();
+        this._likesCount = props.likesCount ?? 0;
+        this._commentsCount = props.commentsCount ?? 0;
+        this._viewsCount = props.viewsCount ?? 0;
+        this._comments = props.comments ?? new Set();
     }
 
     public static create(props: CreatePostProps): Post {
@@ -150,42 +150,42 @@ export class Post {
 
     public publish(): void {
         this.ensureNotDeleted('Cannot publish a deleted post');
-        if (this._status.isPublished()) {
+        if (this._status === PostStatusEnum.Published) {
             return;
         }
 
-        this._status = PostStatus.published();
+        this._status = PostStatusEnum.Published;
         this.touch();
     }
 
     public unpublish(): void {
         this.ensureNotDeleted('Cannot unpublish a deleted post');
 
-        if (this._status.isDraft()) {
+        if (this._status === PostStatusEnum.Draft) {
             return;
         }
 
-        this._status = PostStatus.draft();
+        this._status = PostStatusEnum.Draft;
         this.touch();
     }
 
     public archive(): void {
         this.ensureNotDeleted('Cannot archive a deleted post');
 
-        if (this._status.isArchived()) {
+        if (this._status === PostStatusEnum.Archived) {
             return;
         }
 
-        this._status = PostStatus.archived();
+        this._status = PostStatusEnum.Archived;
         this.touch();
     }
 
     public delete(): void {
-        if (this._status.isDeleted()) {
+        if (this._status === PostStatusEnum.Deleted) {
             return;
         }
 
-        this._status = PostStatus.deleted();
+        this._status = PostStatusEnum.Deleted;
         this.touch();
     }
 
@@ -233,29 +233,29 @@ export class Post {
     /* Likes, comments, views */
 
     public addLike(amount = 1): this {
-        this._likesCount.incrementBy(amount);
+        this._likesCount += amount;
         return this;
     }
 
     public removeLike(amount = 1): this {
-        this._likesCount.decrementBy(amount);
+        this._likesCount -= amount;
         return this;
     }
 
-    public addComment(amount = 1): this {
-        // TODO: Add actual comment logic
-        this._commentsCount.incrementBy(amount);
+    public addComment(amount = 1, commentId: Uuid4): this {
+        this._comments.add(commentId.value);
+        this._commentsCount += amount;
         return this;
     }
 
-    public removeComment(amount = 1): this {
-        // TODO: Add actual comment removing logic
-        this._commentsCount.decrementBy(amount);
+    public removeComment(amount = 1, commentId: Uuid4): this {
+        this._comments.delete(commentId.value);
+        this._commentsCount += amount;
         return this;
     }
 
     public addView(amount = 1): this {
-        this._viewsCount.incrementBy(amount);
+        this._viewsCount += amount;
         return this;
     }
 
@@ -269,15 +269,16 @@ export class Post {
             authorId: this._authorId.value,
             title: this._title.value,
             content: this._content.value,
-            status: this._status.value,
+            status: this._status,
             media: this._media.toJSON(),
             updatedAt: this._updatedAt.value.toDate(),
             createdAt: this._createdAt.value.toDate(),
             deletedAt: this._deletedAt ? this._deletedAt.toDate() : undefined,
             tags: this._tags.toArray(),
-            likesCount: this._likesCount.count,
-            viewsCount: this._viewsCount.count,
-            commentsCount: this._commentsCount.count,
+            likesCount: this._likesCount,
+            viewsCount: this._viewsCount,
+            commentsCount: this._commentsCount,
+            comments: this._comments,
         };
     }
 
@@ -288,7 +289,7 @@ export class Post {
     }
 
     private ensureNotDeleted(message: string): void {
-        if (this._status.isDeleted()) throw new ArgumentInvalidException(message);
+        if (this._status === PostStatusEnum.Deleted) throw new ArgumentInvalidException(message);
     }
 
     /* Getters */
@@ -313,7 +314,7 @@ export class Post {
         return this._tags;
     }
 
-    get status(): PostStatus {
+    get status(): PostStatusEnum {
         return this._status;
     }
 
@@ -331,5 +332,21 @@ export class Post {
 
     get media(): PostMedia {
         return this._media;
+    }
+
+    get comments(): Set<string> {
+        return this._comments;
+    }
+
+    get likesCount(): number {
+        return this._likesCount;
+    }
+
+    get viewsCount(): number {
+        return this._viewsCount;
+    }
+
+    get commentsCount(): number {
+        return this._commentsCount;
     }
 }

@@ -4,6 +4,7 @@ import {
     NotFoundException as Http404,
     ParseUUIDPipe,
     Delete,
+    HttpCode,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { routesV1 } from 'src/configs/app.routes';
@@ -16,7 +17,6 @@ import {
     ApiOperation,
     ApiResponse,
     ApiParam,
-    ApiHeader,
     ApiForbiddenResponse,
 } from '@nestjs/swagger';
 import { ApiCookie } from 'src/libs/decorators/swagger-decorators';
@@ -38,6 +38,7 @@ export class DeleteUserHttpController {
      * @throws {Http404} When the user is not found.
      */
     @Delete(routesV1.user.delete)
+    @HttpCode(204)
     @ApiCookie()
     @ApiOperation({ summary: 'Delete a user by ID' })
     @ApiForbiddenResponse({

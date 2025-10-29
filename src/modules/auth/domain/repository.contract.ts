@@ -68,13 +68,7 @@ export interface AuthRepositoryContract {
      */
     rotateRefreshToken(sessionId: string, refreshToken: RefreshToken): Promise<void>;
 
-    /**
-     * Increment failed login attempts for a user.
-     */
-    incrementFailedLoginAttempts(userId: Uuid4): Promise<number>;
-
-    /**
-     * Reset failed login attempts after successful login.
-     */
-    resetFailedLoginAttempts(userId: Uuid4): Promise<void>;
+    //TODO: Make Redis caching
+    // incrementFailedLoginAttempts(userId: Uuid4): Promise<number>;
+    // resetFailedLoginAttempts(userId: Uuid4): Promise<void>;
 }

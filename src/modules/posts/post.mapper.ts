@@ -3,13 +3,11 @@ import { Post } from './domain/post.entity';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 import { Title } from './domain/value-objects/title.vo';
 import { Content } from './domain/value-objects/content.vo';
-import { PostStatus } from './domain/value-objects/post-status.vo';
 import { CreatedAt } from 'src/shared/domain/value-objects/created-at.vo';
 import { UpdatedAt } from 'src/shared/domain/value-objects/updated-at.vo';
 import { PostDbRecord, PostDbRecordArray } from 'src/db/db.records';
 import { PostCollection } from './domain/collections/posts.collection';
 import { PostTags } from './domain/value-objects/post-tags.vo';
-import { Counter } from 'src/shared/domain/value-objects/counter.vo';
 import { PostMedia } from './domain/post-media.entity';
 
 @Injectable()
@@ -20,11 +18,11 @@ export class PostMapper {
             authorId: Uuid4.from(dr.authorId),
             title: Title.create(dr.title),
             content: Content.create(dr.content),
-            status: PostStatus.fromString(dr.status),
+            status: dr.status,
             tags: PostTags.create(dr.tags),
-            likesCount: Counter.from(dr.likesCount),
-            viewsCount: Counter.from(dr.viewsCount),
-            commentsCount: Counter.from(dr.commentsCount),
+            likesCount: dr.likesCount,
+            viewsCount: dr.viewsCount,
+            commentsCount: dr.commentsCount,
             createdAt: CreatedAt.from(dr.createdAt),
             updatedAt: UpdatedAt.from(dr.updatedAt),
             media: PostMedia.fromDbRecord(dr.media),
@@ -41,11 +39,11 @@ export class PostMapper {
                     authorId: Uuid4.from(r.authorId),
                     title: Title.create(r.title),
                     content: Content.create(r.content),
-                    status: PostStatus.fromString(r.status),
+                    status: r.status,
                     tags: PostTags.create(r.tags),
-                    likesCount: Counter.from(r.likesCount),
-                    viewsCount: Counter.from(r.viewsCount),
-                    commentsCount: Counter.from(r.commentsCount),
+                    likesCount: r.likesCount,
+                    viewsCount: r.viewsCount,
+                    commentsCount: r.commentsCount,
                     createdAt: CreatedAt.from(r.createdAt),
                     updatedAt: UpdatedAt.from(r.updatedAt),
                     media: PostMedia.fromDbRecord(r.media),

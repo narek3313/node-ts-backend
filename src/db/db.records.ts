@@ -1,3 +1,4 @@
+import { PostStatusEnum } from '@prisma/client';
 import { MediaType } from 'src/libs/enums/post-media-type';
 
 export type UserDbRecord = {
@@ -29,7 +30,7 @@ export type PostDbRecord = {
     authorId: string;
     title: string;
     content: string;
-    status: string;
+    status: PostStatusEnum;
     tags: string[];
     likesCount: number;
     viewsCount: number;
@@ -60,7 +61,20 @@ export type UserAuthDbRecord = {
         userId: string;
         password: string;
         lastPasswordChange: Date | null;
-        failedLoginAttempts: number;
     };
     role: 'user' | 'admin' | 'moderator';
+};
+
+export type CommentDbRecord = {
+    id: string;
+    postId: string;
+    authorId: string;
+    parentId?: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    likesCount: number;
+    content: string;
+    repliesCount: number;
+    parent?: CommentDbRecord;
+    replies?: CommentDbRecord[];
 };

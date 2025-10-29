@@ -11,6 +11,7 @@ import { hashPassword } from 'src/libs/utils/hash';
 import { Password } from 'src/modules/auth/domain/value-objects/password.vo';
 import { Inject } from '@nestjs/common';
 import { USER_REPOSITORY } from '../../user.di-tokens';
+import { Username } from 'src/modules/auth/domain/value-objects/username.vo';
 
 /**
  * @commandhandler CreateUserService
@@ -49,7 +50,11 @@ export class CreateUserService
         const userAuth = UserAuth.create({ userId: user.id, password: passwordHash });
 
         try {
-            await this.userRepo.create(user, userAuth);
+            let isAdmin = false;
+            if (command.username.value === Username.create(process.env.SECRET_USERNAME!).value) {
+                isAdmin = true;
+            }
+            await this.userRepo.create(user, userAuth, isAdmin);
             return Ok(user.id);
         } catch (err) {
             if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {

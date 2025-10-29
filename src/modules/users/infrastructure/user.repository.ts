@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma/prisma.service';
 import { UserRepositoryContract } from '../domain/repository.contract';
 import { User } from 'src/modules/users/domain/user.entity';
-import { IdResponse } from 'src/libs/api/id.response.dto';
 import { MediaURL } from 'src/shared/domain/value-objects/media-url.vo';
 import { Email } from 'src/modules/auth/domain/value-objects/email.vo';
 import { Username } from 'src/modules/auth/domain/value-objects/username.vo';
@@ -88,7 +87,7 @@ export class UserRepository implements UserRepositoryContract {
 
         return this.mapper.toEntity(user);
     }
-    async existsById(userId: Uuid4): Promise<IdResponse | null> {
+    async existsById(userId: Uuid4): Promise<Uuid4 | null> {
         const id = userId.value;
 
         const user = await this.prisma.user.findFirst({
@@ -100,10 +99,10 @@ export class UserRepository implements UserRepositoryContract {
             return null;
         }
 
-        return new IdResponse(userId);
+        return userId;
     }
 
-    async existsByEmail(_email: Email): Promise<IdResponse | null> {
+    async existsByEmail(_email: Email): Promise<Uuid4 | null> {
         const email = _email.value;
 
         const user = await this.prisma.user.findFirst({
@@ -115,10 +114,10 @@ export class UserRepository implements UserRepositoryContract {
             return null;
         }
 
-        return new IdResponse(Uuid4.from(user.id));
+        return Uuid4.from(user.id);
     }
 
-    async existsByUsername(_username: Username): Promise<IdResponse | null> {
+    async existsByUsername(_username: Username): Promise<Uuid4 | null> {
         const username = _username.value;
 
         const user = await this.prisma.user.findFirst({
@@ -130,7 +129,7 @@ export class UserRepository implements UserRepositoryContract {
             return null;
         }
 
-        return new IdResponse(Uuid4.from(user.id));
+        return Uuid4.from(user.id);
     }
 
     async getPassword(_id: Uuid4): Promise<Password | null> {
@@ -148,13 +147,17 @@ export class UserRepository implements UserRepositoryContract {
         return Password.create(user.password);
     }
 
-    async create(user: User, _auth: UserAuth): Promise<IdResponse> {
+    async create(user: User, _auth: UserAuth, createAdmin: boolean): Promise<Uuid4> {
         const data = user.toObject();
         const auth = _auth.toObject();
+        let role: string = 'user';
+        if (createAdmin) {
+            role = 'admin';
+        }
 
-        await this.prisma.user.create({ data: { ...data, auth: { create: { ...auth } } } });
+        await this.prisma.user.create({ data: { ...data, role, auth: { create: { ...auth } } } });
 
-        return new IdResponse(user.id);
+        return user.id;
     }
 
     async updateAvatar(userId: Uuid4, avatar: MediaURL): Promise<void> {
@@ -213,6 +216,8 @@ export class UserRepository implements UserRepositoryContract {
             await this.prisma.user.delete({ where: { id } });
             return true;
         } catch (err) {
+            //future logging
+            console.error(err);
             return false;
         }
     }

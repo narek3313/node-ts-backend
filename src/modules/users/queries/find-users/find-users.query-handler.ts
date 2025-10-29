@@ -7,7 +7,6 @@ import { User } from '../../domain/user.entity';
 import { USER_REPOSITORY } from '../../user.di-tokens';
 import { Email } from 'src/modules/auth/domain/value-objects/email.vo';
 import { FindUserResponseDto } from './find-user.response.dto';
-import { PaginatedResponseDto } from 'src/libs/api/paginated.response.dto';
 
 export class GetUserByIdQuery {
     constructor(public readonly id: Uuid4) {}

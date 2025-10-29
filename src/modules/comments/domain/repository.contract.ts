@@ -1,6 +1,4 @@
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
-import { CommentCollection } from './collections/comment.collection';
-import { Replies } from './value-objects/replies.vo';
 import { Comment } from '../comment.entity';
 
 /**
@@ -15,8 +13,9 @@ export interface CommentsRepositoryContract {
     create(comment: Comment): Promise<Uuid4>;
     delete(id: Uuid4): Promise<boolean>;
     findById(id: Uuid4): Promise<Comment | null>;
-    findByUser(userId: Uuid4, offset: number, limit: number): Promise<CommentCollection>;
-    findByPost(postId: Uuid4, offset: number, limit: number): Promise<CommentCollection>;
-    findReplies(parentId: Uuid4): Promise<Replies>;
-    existsById(commentId: Uuid4): Promise<boolean>;
+    findByIds(ids: Uuid4[]): Promise<Comment[] | null>;
+    findByUser(userId: Uuid4, offset: number, limit: number): Promise<Comment[] | null>;
+    findByPost(postId: Uuid4, offset: number, limit: number): Promise<Comment[] | null>;
+    findReplies(parentId: Uuid4): Promise<Comment[] | null>;
+    existsById(commentId: Uuid4): Promise<Uuid4 | null>;
 }

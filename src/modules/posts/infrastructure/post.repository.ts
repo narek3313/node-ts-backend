@@ -196,7 +196,7 @@ export class PostRepository implements PostRepositoryContract {
     async findById(id: Uuid4): Promise<Post | null> {
         const post = await this.prisma.post.findUnique({
             where: { id: id.value },
-            include: { media: true, author: true },
+            include: { media: { include: { items: true } }, author: true },
         });
         if (!post) return null;
 
@@ -229,15 +229,23 @@ export class PostRepository implements PostRepositoryContract {
         return PostMedia.fromDbRecord(postMedia as any);
     }
 
-    async findAllByUser(userId: Uuid4, offset: number, limit: number): Promise<PostCollection> {
-        const posts = await this.prisma.post.findMany({
-            where: { authorId: userId.value },
-            include: { media: true, author: true },
-            skip: offset,
-            take: limit,
-            orderBy: { createdAt: 'desc' },
-        });
-        return this.mapper.toCollection(posts as any);
+    async findAllByUser(userId: Uuid4, offset: number, limit: number): Promise<[Post[], number]> {
+        const [_posts, total] = await Promise.all([
+            this.prisma.post.findMany({
+                where: { authorId: userId.value },
+                include: { media: { select: { items: true, id: true, postId: true } } },
+                skip: offset,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
+            }),
+            this.prisma.post.count({
+                where: { authorId: userId.value },
+            }),
+        ]);
+
+        const posts = _posts.map((p) => this.mapper.toEntity(p as any));
+
+        return [posts, total];
     }
 
     async findAll(offset: number, limit: number): Promise<PostCollection> {

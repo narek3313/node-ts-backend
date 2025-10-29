@@ -144,25 +144,4 @@ export class AuthRepository implements AuthRepositoryContract {
             },
         });
     }
-
-    async incrementFailedLoginAttempts(userId: Uuid4): Promise<number> {
-        const updated = await this.prisma.userAuth.update({
-            where: { userId: userId.value },
-            data: {
-                failedLoginAttempts: { increment: 1 },
-            },
-            select: { failedLoginAttempts: true },
-        });
-
-        return updated.failedLoginAttempts;
-    }
-
-    async resetFailedLoginAttempts(userId: Uuid4): Promise<void> {
-        await this.prisma.userAuth.update({
-            where: { userId: userId.value },
-            data: {
-                failedLoginAttempts: 0,
-            },
-        });
-    }
 }

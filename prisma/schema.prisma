@@ -32,13 +32,13 @@ model User {
   sessions Session[]
   auth     UserAuth?
   Post     Post[]
+  Comment  Comment[]
 }
 
 model UserAuth {
   userId              String    @id
   password            String
   lastPasswordChange  DateTime?
-  failedLoginAttempts Int       @default(0)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -58,28 +58,29 @@ model Session {
 }
 
 model Post {
-  id            String    @id
+  id            String         @id
   authorId      String
-  likesCount    Int       @default(0)
-  viewsCount    Int       @default(0)
-  commentsCount Int       @default(0)
-  status        PostStatusEnum    @default(Draft)
-  tags          String[]  @default([])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  likesCount    Int            @default(0)
+  viewsCount    Int            @default(0)
+  commentsCount Int            @default(0)
+  status        PostStatusEnum @default(Draft)
+  tags          String[]       @default([])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   deletedAt     DateTime?
 
   title   String
   content String
 
-  author User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  media  PostMedia?
+  author  User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  media   PostMedia?
+  comments Comment[]
 
   @@index([authorId])
 }
 
 model PostMedia {
-  id     String @id 
+  id     String @id
   postId String @unique
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
@@ -87,7 +88,7 @@ model PostMedia {
 }
 
 model PostMediaItem {
-  id          String    @id 
+  id          String    @id
   url         String
   size        Int
   type        String
@@ -97,5 +98,22 @@ model PostMediaItem {
 }
 
 model Comment {
-  id String @id
+  id       String  @id
+  postId   String
+  authorId String
+  parentId String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  likesCount Int      @default(0)
+  content    String
+
+  repliesCount Int @default(0)
+
+  parent  Comment?  @relation("CommentThread", fields: [parentId], references: [id])
+  replies Comment[] @relation("CommentThread") 
+
+  post   Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User? @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
+

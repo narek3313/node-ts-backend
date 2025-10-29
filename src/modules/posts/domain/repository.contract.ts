@@ -25,7 +25,7 @@ export interface PostRepositoryContract {
     delete(id: Uuid4): Promise<boolean>;
     existsById(postId: Uuid4): Promise<boolean>;
     findById(id: Uuid4): Promise<Post | null>;
-    findAllByUser(userId: Uuid4, offset: number, limit: number): Promise<PostCollection>;
+    findAllByUser(userId: Uuid4, offset: number, limit: number): Promise<[Post[], number]>;
     findAll(offset: number, limit: number): Promise<PostCollection>;
     findByTags(tags: PostTags, offset: number, limit: number): Promise<PostCollection>;
 }

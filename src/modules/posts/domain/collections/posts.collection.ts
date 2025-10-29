@@ -1,11 +1,11 @@
 import { EntityCollection } from 'src/shared/domain/entity.collection';
-import { PostStatus } from '../value-objects/post-status.vo';
 import { Post } from '../post.entity';
 import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
+import { PostStatusEnum } from '@prisma/client';
 
 export class PostCollection extends EntityCollection<Post> {
     private _byAuthorId: Map<string, Post[]> = new Map();
-    private _byStatus: Map<PostStatus, Post[]> = new Map();
+    private _byStatus: Map<PostStatusEnum, Post[]> = new Map();
 
     private constructor(posts: Post[] = []) {
         super(posts);
@@ -30,7 +30,7 @@ export class PostCollection extends EntityCollection<Post> {
         return this._byAuthorId.get(key) ?? [];
     }
 
-    public getByStatus(status: PostStatus): Post[] {
+    public getByStatus(status: PostStatusEnum): Post[] {
         return this._byStatus.get(status) ?? [];
     }
 }
