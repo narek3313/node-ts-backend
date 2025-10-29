@@ -14,14 +14,15 @@ import { Result, match } from 'oxide.ts';
 import { NotFoundException } from 'src/libs/exceptions/exceptions';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { FindPaginatedPostResponseDto, FindPostResponseDto } from './find-post.response.dto';
-import { Roles, ROLES_ENUM, RolesGuard } from 'src/libs/decorators/role.decorator';
+import { RolesGuard } from 'src/libs/decorators/role.decorator';
 import { ApiCookie } from 'src/libs/decorators/swagger-decorators';
 import { GetPostByIdQuery, GetPostsByUserQuery } from './find-post.query-handler';
+import { SkipAuthorGuard } from 'src/libs/decorators/author-guard.decorator';
 
 @ApiTags('Posts')
 @Controller(routesV1.version)
+@SkipAuthorGuard()
 @UseGuards(RolesGuard)
-@Roles(ROLES_ENUM.ADMIN, ROLES_ENUM.MODERATOR)
 export class FindPostsHttpController {
     constructor(private readonly queryBus: QueryBus) {}
 

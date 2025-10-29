@@ -96,7 +96,7 @@ export class FindPostResponseDto {
     @IsOptional()
     @ValidateNested({ each: true })
     @Type(() => MediaItemDto)
-    media?: MediaItemDto[];
+    media: MediaItemDto[] = [];
 
     @ApiProperty({ type: [FindCommentResponseDto], nullable: true })
     @IsOptional()

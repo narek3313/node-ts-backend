@@ -12,7 +12,6 @@ import {
 import { NotFoundException } from 'src/libs/exceptions/exceptions';
 import { Post } from 'src/modules/posts/domain/post.entity';
 import { FindCommentResponseDto } from 'src/modules/comments/queries/find-comments/find-comment.response.dto';
-import { MediaItemDto } from '../../commands/update-post/dtos/update-media.request.dto';
 import { COMMENT_REPOSITORY } from 'src/modules/comments/comments.di-tokens';
 import { CommentRepository } from 'src/modules/comments/infrastructure/comment.repository';
 
@@ -48,6 +47,17 @@ export class GetPostByIdHandler implements IQueryHandler<GetPostByIdQuery> {
             authorId: post.authorId.value,
             updatedAt: post.updatedAt.value.toDate(),
             createdAt: post.createdAt.value.toDate(),
+            media: post.media
+                ? post.media.toJSON().items.map(
+                      (m) =>
+                          new MediaItemResponseDto({
+                              url: m.url,
+                              type: m.type,
+                              size: m.size,
+                              duration: m.duration ?? undefined,
+                          }),
+                  )
+                : [],
         });
 
         return Ok(dto);

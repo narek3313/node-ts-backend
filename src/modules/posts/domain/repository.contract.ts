@@ -28,4 +28,5 @@ export interface PostRepositoryContract {
     findAllByUser(userId: Uuid4, offset: number, limit: number): Promise<[Post[], number]>;
     findAll(offset: number, limit: number): Promise<PostCollection>;
     findByTags(tags: PostTags, offset: number, limit: number): Promise<PostCollection>;
+    getAuthorIdById(id: Uuid4): Promise<Uuid4 | null>;
 }

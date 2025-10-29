@@ -14,13 +14,21 @@ import {
 } from './commands/create-comment/create-comment.service';
 import { DeleteCommentHttpController } from './commands/delete-comment/delete-comment.http.controller';
 import { DeleteCommentService } from './commands/delete-comment/delete-comment.service';
+import { FindCommentsHttpController } from './queries/find-comments/find-comment.http.controller';
+import { FindPostCommentsHandler } from './queries/find-comments/find-comment.query-handler';
 
-const httpControllers = [CreateCommentHttpController, DeleteCommentHttpController];
+const httpControllers = [
+    CreateCommentHttpController,
+    DeleteCommentHttpController,
+    FindCommentsHttpController,
+];
 const commandHandlers: Provider[] = [
     CreateCommentService,
     CreateReplyService,
     DeleteCommentService,
 ];
+
+const queryHandlers: Provider[] = [FindPostCommentsHandler];
 const mappers: Provider[] = [CommentMapper];
 const repositories: Provider[] = [{ provide: COMMENT_REPOSITORY, useClass: CommentRepository }];
 const guards: Provider[] = [{ provide: APP_GUARD, useClass: JwtAuthGuard }];
@@ -28,6 +36,6 @@ const guards: Provider[] = [{ provide: APP_GUARD, useClass: JwtAuthGuard }];
 @Module({
     imports: [CqrsModule, PrismaModule, AuthModule],
     controllers: [...httpControllers],
-    providers: [...commandHandlers, ...mappers, ...repositories, ...guards],
+    providers: [...commandHandlers, ...queryHandlers, ...mappers, ...repositories, ...guards],
 })
 export class CommentModule {}

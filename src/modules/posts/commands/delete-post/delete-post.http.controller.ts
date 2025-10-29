@@ -5,6 +5,7 @@ import {
     ParseUUIDPipe,
     Delete,
     HttpCode,
+    UseGuards,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { routesV1 } from 'src/configs/app.routes';
@@ -13,6 +14,7 @@ import { Uuid4 } from 'src/shared/domain/value-objects/uuid.vo';
 import { match } from 'oxide.ts';
 import { DeletePostCommand } from './delete-post.command';
 import { Result } from 'oxide.ts';
+import { AuthorGuard } from 'src/libs/decorators/author-guard.decorator';
 
 /**
  * @controller DeletePostHttpController
@@ -20,6 +22,7 @@ import { Result } from 'oxide.ts';
  * Handles post deletion requests. Uses the CQRS CommandBus
  * to execute the delete post command.
  */
+@UseGuards(AuthorGuard)
 @Controller(routesV1.version)
 export class DeletePostHttpController {
     constructor(private readonly commandBus: CommandBus) {}

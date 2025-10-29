@@ -52,6 +52,19 @@ export class PostRepository implements PostRepositoryContract {
         return new IdResponse(_post.id);
     }
 
+    async getAuthorIdById(id: Uuid4): Promise<Uuid4 | null> {
+        const result = await this.prisma.post.findFirst({
+            where: { id: id.value },
+            select: { authorId: true },
+        });
+
+        if (!result) {
+            return null;
+        }
+
+        return Uuid4.from(result.authorId);
+    }
+
     async getMediaItems(
         postMediaId: Uuid4,
         option: 'asPrimitives' | 'asDomain' = 'asDomain',

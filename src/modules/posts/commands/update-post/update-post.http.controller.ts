@@ -7,6 +7,7 @@ import {
     NotFoundException as Http404,
     HttpCode,
     Delete,
+    UseGuards,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { routesV1 } from 'src/configs/app.routes';
@@ -33,7 +34,9 @@ import { AddTagsDto, RemoveTagsDto } from './dtos/update-tags.request.dto';
 import { AddMediaDto } from './dtos/update-media.request.dto';
 import { MediaItem } from '../../domain/value-objects/media-item.vo';
 import { IdResponse } from 'src/libs/api/id.response.dto';
+import { AuthorGuard } from 'src/libs/decorators/author-guard.decorator';
 
+@UseGuards(AuthorGuard)
 @Controller(routesV1.version)
 export class UpdatePostHttpController {
     constructor(private readonly commandBus: CommandBus) {}

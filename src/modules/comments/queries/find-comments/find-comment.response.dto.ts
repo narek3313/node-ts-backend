@@ -1,5 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID, IsString, IsOptional, IsDateString, IsInt, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+    IsUUID,
+    IsString,
+    IsOptional,
+    IsDateString,
+    IsInt,
+    Min,
+    IsArray,
+    ValidateNested,
+} from 'class-validator';
 
 export class FindCommentResponseDto {
     @ApiProperty({ example: '770e8400-e29b-41d4-a716-446655440000' })
@@ -68,5 +78,32 @@ export class FindCommentResponseDto {
         this.likesCount = props.likesCount;
         this.repliesCount = props.repliesCount;
         this.parentId = props.parentId;
+    }
+}
+
+export class FindPaginatedCommentsResponseDto {
+    @ApiProperty({ example: 1 })
+    @IsInt()
+    @Min(1)
+    page: number;
+
+    @ApiProperty({ example: 10 })
+    @IsInt()
+    @Min(1)
+    limit: number;
+
+    @ApiProperty({ example: 42 })
+    @IsInt()
+    @Min(0)
+    total: number;
+
+    @ApiProperty({ type: [FindCommentResponseDto] })
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => FindCommentResponseDto)
+    data: FindCommentResponseDto[];
+
+    constructor(data: Partial<FindPaginatedCommentsResponseDto>) {
+        Object.assign(this, data);
     }
 }

@@ -29,6 +29,7 @@ import { COMMENT_REPOSITORY } from '../comments/comments.di-tokens';
 import { CommentRepository } from '../comments/infrastructure/comment.repository';
 import { CommentModule } from '../comments/comment.module';
 import { CommentMapper } from '../comments/comment.mapper';
+import { AuthorGuard } from 'src/libs/decorators/author-guard.decorator';
 
 const httpControllers = [
     UpdatePostHttpController,
