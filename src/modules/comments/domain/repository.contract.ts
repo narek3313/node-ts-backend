@@ -17,5 +17,6 @@ export interface CommentsRepositoryContract {
     findByUser(userId: Uuid4, offset: number, limit: number): Promise<Comment[] | null>;
     findByPost(postId: Uuid4, offset: number, limit: number): Promise<Comment[] | null>;
     findReplies(parentId: Uuid4): Promise<Comment[] | null>;
+    getAuthorIdById(commentId: Uuid4): Promise<Uuid4 | null>;
     existsById(commentId: Uuid4): Promise<Uuid4 | null>;
 }

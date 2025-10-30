@@ -1,4 +1,4 @@
-import { Module, Provider } from '@nestjs/common';
+import { forwardRef, Module, Provider } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { CommentMapper } from './comment.mapper';
 import { CommentRepository } from './infrastructure/comment.repository';
@@ -16,16 +16,21 @@ import { DeleteCommentHttpController } from './commands/delete-comment/delete-co
 import { DeleteCommentService } from './commands/delete-comment/delete-comment.service';
 import { FindCommentsHttpController } from './queries/find-comments/find-comment.http.controller';
 import { FindPostCommentsHandler } from './queries/find-comments/find-comment.query-handler';
+import { PostModule } from '../posts/post.module';
+import { UpdateCommentHttpController } from './commands/update-comment/update-comment.http.controller';
+import { UpdateCommentService } from './commands/update-comment/update-comment.service';
 
 const httpControllers = [
     CreateCommentHttpController,
     DeleteCommentHttpController,
     FindCommentsHttpController,
+    UpdateCommentHttpController,
 ];
 const commandHandlers: Provider[] = [
     CreateCommentService,
     CreateReplyService,
     DeleteCommentService,
+    UpdateCommentService,
 ];
 
 const queryHandlers: Provider[] = [FindPostCommentsHandler];
@@ -34,7 +39,7 @@ const repositories: Provider[] = [{ provide: COMMENT_REPOSITORY, useClass: Comme
 const guards: Provider[] = [{ provide: APP_GUARD, useClass: JwtAuthGuard }];
 
 @Module({
-    imports: [CqrsModule, PrismaModule, AuthModule],
+    imports: [CqrsModule, PrismaModule, AuthModule, forwardRef(() => PostModule)],
     controllers: [...httpControllers],
     providers: [...commandHandlers, ...queryHandlers, ...mappers, ...repositories, ...guards],
 })

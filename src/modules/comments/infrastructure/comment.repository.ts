@@ -6,6 +6,7 @@ import { CommentCreateError, CommentNotFoundError } from '../comment.errors';
 import { CommentMapper } from '../comment.mapper';
 import { CommentDbRecord } from 'src/db/db.records';
 import { Injectable } from '@nestjs/common';
+import { Content } from 'src/modules/posts/domain/value-objects/content.vo';
 
 @Injectable()
 export class CommentRepository implements CommentsRepositoryContract {
@@ -157,5 +158,25 @@ export class CommentRepository implements CommentsRepositoryContract {
         }
 
         return commentId;
+    }
+
+    async getAuthorIdById(commentId: Uuid4): Promise<Uuid4 | null> {
+        const result = await this.prisma.comment.findUnique({
+            where: { id: commentId.value },
+            select: { authorId: true },
+        });
+
+        if (!result) {
+            return null;
+        }
+
+        return Uuid4.from(result.authorId);
+    }
+
+    async updateContent(commentId: Uuid4, newContent: Content): Promise<void> {
+        await this.prisma.comment.update({
+            where: { id: commentId.value },
+            data: { content: newContent.value },
+        });
     }
 }

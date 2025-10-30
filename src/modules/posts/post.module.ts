@@ -1,4 +1,4 @@
-import { Module, Provider } from '@nestjs/common';
+import { forwardRef, Module, Provider } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { PostMapper } from './post.mapper';
 import { UpdatePostHttpController } from './commands/update-post/update-post.http.controller';
@@ -29,7 +29,6 @@ import { COMMENT_REPOSITORY } from '../comments/comments.di-tokens';
 import { CommentRepository } from '../comments/infrastructure/comment.repository';
 import { CommentModule } from '../comments/comment.module';
 import { CommentMapper } from '../comments/comment.mapper';
-import { AuthorGuard } from 'src/libs/decorators/author-guard.decorator';
 
 const httpControllers = [
     UpdatePostHttpController,
@@ -61,8 +60,9 @@ const repositories: Provider[] = [
 const guards: Provider[] = [{ provide: APP_GUARD, useClass: JwtAuthGuard }];
 
 @Module({
-    imports: [CqrsModule, PrismaModule, AuthModule, CommentModule],
+    imports: [CqrsModule, PrismaModule, AuthModule, forwardRef(() => CommentModule)],
     controllers: [...httpControllers],
     providers: [...commandHandlers, ...querieHandlers, ...mappers, ...repositories, ...guards],
+    exports: [POST_REPOSITORY],
 })
 export class PostModule {}

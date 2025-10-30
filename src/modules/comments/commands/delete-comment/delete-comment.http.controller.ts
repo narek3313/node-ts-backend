@@ -6,6 +6,7 @@ import {
     Req,
     BadRequestException as Http400,
     HttpCode,
+    UseGuards,
 } from '@nestjs/common';
 import { routesV1 } from 'src/configs/app.routes';
 import { CommandBus } from '@nestjs/cqrs';
@@ -14,7 +15,9 @@ import { type RequestWithUser } from 'src/modules/auth/jwt/jwt.strategy';
 import { Result, match } from 'oxide.ts';
 import { CommentDeleteError } from '../../comment.errors';
 import { DeleteCommentCommand } from './delete-comment.command';
+import { AuthorGuard } from 'src/libs/decorators/author-guard.decorator';
 
+@UseGuards(AuthorGuard)
 @Controller()
 export class DeleteCommentHttpController {
     constructor(private readonly commandBus: CommandBus) {}

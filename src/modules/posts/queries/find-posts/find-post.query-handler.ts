@@ -66,10 +66,7 @@ export class GetPostByIdHandler implements IQueryHandler<GetPostByIdQuery> {
 
 @QueryHandler(GetPostsByUserQuery)
 export class GetPostsByUserHandler implements IQueryHandler<GetPostsByUserQuery> {
-    constructor(
-        @Inject(POST_REPOSITORY) private readonly postRepo: PostRepository,
-        @Inject(COMMENT_REPOSITORY) private readonly commentRepo: CommentRepository,
-    ) {}
+    constructor(@Inject(POST_REPOSITORY) private readonly postRepo: PostRepository) {}
 
     async execute(
         query: GetPostsByUserQuery,
@@ -81,22 +78,11 @@ export class GetPostsByUserHandler implements IQueryHandler<GetPostsByUserQuery>
             return Err(new NotFoundException('No posts found'));
         }
 
-        // collect all comment IDs from all posts
-        const allCommentIds = posts.flatMap((post) => Array.from(post.comments || []));
-        const commentEntities = allCommentIds.length
-            ? await this.commentRepo.findByIds(allCommentIds.map((id) => Uuid4.from(id)))
-            : [];
-
         const dto = new FindPaginatedPostResponseDto({
             page: Math.floor(offset / limit) + 1,
             limit,
             total,
             data: posts.map((post: Post) => {
-                // filter only comments for this post
-                const commentsForPost = commentEntities
-                    ? commentEntities.filter((c) => c.postId.value === post.id.value)
-                    : [];
-
                 return new FindPostResponseDto({
                     id: post.id.value,
                     authorId: post.authorId.value,
@@ -122,21 +108,6 @@ export class GetPostsByUserHandler implements IQueryHandler<GetPostsByUserQuery>
                                   }),
                           )
                         : [],
-
-                    comments: commentsForPost.map(
-                        (c) =>
-                            new FindCommentResponseDto({
-                                id: c.id.value,
-                                postId: c.postId.value,
-                                authorId: c.authorId.value,
-                                content: c.content.value,
-                                createdAt: c.createdAt.value.toDate(),
-                                updatedAt: c.updatedAt.value.toDate(),
-                                likesCount: c.likesCount,
-                                repliesCount: c.repliesCount,
-                                parentId: c.parentId?.value ?? null,
-                            }),
-                    ),
                 });
             }),
         });

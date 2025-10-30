@@ -28,3 +28,12 @@ export class CommentNotFoundError extends ExceptionBase {
         super(CommentNotFoundError.message, cause, metadata);
     }
 }
+
+export class CommentUpdateError extends ExceptionBase {
+    static readonly message = 'Failed to update comment';
+    public readonly code = 'COMMENT.UPDATE_ERROR';
+
+    constructor(cause?: Error, metadata?: unknown) {
+        super(CommentUpdateError.message, cause, metadata);
+    }
+}
